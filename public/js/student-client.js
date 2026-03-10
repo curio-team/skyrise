@@ -2,6 +2,7 @@ let ws = null;
 let roomCode = null;
 let studentId = null;
 let studentData = null;
+let allStudents = [];
 let levels = [];
 let totalLevels = 10;
 let reconnectAttempts = 0;
@@ -10,42 +11,42 @@ let reconnectTimeout = null;
 async function joinRoom() {
   const roomCodeInput = document.getElementById('room-code').value.trim().toUpperCase();
   const studentName = document.getElementById('student-name').value.trim();
-  
+
   if (!roomCodeInput) {
     showError('Please enter a room code');
     return;
   }
-  
+
   if (!studentName) {
     showError('Please enter your name');
     return;
   }
-  
+
   try {
     const response = await fetch(`/api/rooms/${roomCodeInput}/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: studentName })
     });
-    
+
     const data = await response.json();
-    
+
     if (data.success) {
       roomCode = roomCodeInput;
       studentId = data.studentId;
       studentData = data.student;
-      
+
       document.getElementById('login-container').style.display = 'none';
       document.getElementById('student-container').style.display = 'block';
       document.getElementById('room-code-display').textContent = roomCode;
       document.getElementById('student-name-display').textContent = studentName;
-      
+
       // Load levels configuration
       await loadLevels();
-      
+
       // Connect WebSocket
       connectWebSocket();
-      
+
       // Update UI with initial data
       updateStudentView();
     } else {
@@ -61,7 +62,7 @@ async function loadLevels() {
   try {
     const response = await fetch(`/api/rooms/${roomCode}/config`);
     const data = await response.json();
-    
+
     if (data.success) {
       levels = data.levels;
       totalLevels = data.totalLevels;
@@ -75,16 +76,16 @@ async function loadLevels() {
 function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${protocol}//${window.location.host}/ws?room=${roomCode}&role=student&studentId=${studentId}`;
-  
+
   updateConnectionStatus('connecting');
   ws = new WebSocket(wsUrl);
-  
+
   ws.onopen = () => {
     console.log('WebSocket connected');
     updateConnectionStatus('connected');
     reconnectAttempts = 0;
   };
-  
+
   ws.onmessage = (event) => {
     try {
       const message = JSON.parse(event.data);
@@ -93,11 +94,11 @@ function connectWebSocket() {
       console.error('Error parsing message:', error);
     }
   };
-  
+
   ws.onerror = (error) => {
     console.error('WebSocket error:', error);
   };
-  
+
   ws.onclose = () => {
     console.log('WebSocket closed');
     updateConnectionStatus('disconnected');
@@ -108,9 +109,9 @@ function connectWebSocket() {
 function attemptReconnect() {
   reconnectAttempts++;
   const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-  
+
   console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
-  
+
   reconnectTimeout = setTimeout(() => {
     connectWebSocket();
   }, delay);
@@ -133,6 +134,12 @@ function handleMessage(message) {
     case 'answer_rejected':
       showInteractionFeedback(message.data.message, false);
       break;
+    case 'student_joined':
+      handleStudentJoined(message.data);
+      break;
+    case 'student_disconnected':
+      handleStudentDisconnected(message.data);
+      break;
     case 'error':
       showError(message.data.message);
       break;
@@ -146,6 +153,7 @@ function handleMessage(message) {
 
 function handleRoomState(data) {
   if (data.students) {
+    allStudents = data.students;
     const myStudent = data.students.find(s => s.id === studentId);
     if (myStudent) {
       studentData = myStudent;
@@ -154,25 +162,50 @@ function handleRoomState(data) {
   }
 }
 
+function handleStudentJoined(data) {
+  if (data.student) {
+    const idx = allStudents.findIndex(s => s.id === data.student.id);
+    if (idx >= 0) {
+      allStudents[idx] = data.student;
+    } else {
+      allStudents.push(data.student);
+    }
+    updatePeerCount();
+  }
+}
+
+function handleStudentDisconnected(data) {
+  allStudents = allStudents.filter(s => s.id !== data.studentId);
+  updatePeerCount();
+}
+
 function handleLevelCompleted(data) {
+  if (data.student) {
+    const idx = allStudents.findIndex(s => s.id === data.student.id);
+    if (idx >= 0) {
+      allStudents[idx] = data.student;
+    }
+  }
   if (data.studentId === studentId) {
     studentData = data.student;
     updateStudentView();
     animateLevelComplete(data.rewards);
+  } else {
+    updatePeerCount();
   }
 }
 
 function updateStudentView() {
   if (!studentData) return;
-  
+
   const currentLevel = studentData.current_level - 1;
   document.getElementById('current-level').textContent = currentLevel;
-  
+
   // Building visualization removed from student view
-  
+
   // Update level info
   const level = levels.find(l => l.id === studentData.current_level);
-  
+
   if (level) {
     document.getElementById('level-title').textContent = `Level ${level.id}: ${level.title}`;
     document.getElementById('level-description').textContent = level.description;
@@ -180,15 +213,15 @@ function updateStudentView() {
   } else if (currentLevel >= totalLevels) {
     document.getElementById('level-title').textContent = '🎉 Congratulations!';
     document.getElementById('level-description').textContent = 'You have completed all levels!';
-    document.getElementById('assignment-text').textContent = 
+    document.getElementById('assignment-text').textContent =
       'Amazing work! You\'ve built the tallest building in our city. Your dedication and effort have paid off!';
   }
-  
+
   // Update inventory
   if (studentData.inventory && studentData.inventory.length > 0) {
     document.getElementById('inventory-container').style.display = 'block';
-    document.getElementById('inventory-items').innerHTML = 
-      studentData.inventory.map(item => 
+    document.getElementById('inventory-items').innerHTML =
+      studentData.inventory.map(item =>
         `<div class="inventory-item">${escapeHtml(item)}</div>`
       ).join('');
   } else {
@@ -197,6 +230,23 @@ function updateStudentView() {
 
   // Render type-specific interaction UI
   renderLevelInteraction(level);
+
+  // Update peer count
+  updatePeerCount();
+}
+
+function updatePeerCount() {
+  const el = document.getElementById('peers-at-level');
+  if (!el || !studentData) return;
+  const myLevel = studentData.current_level;
+  const count = allStudents.filter(s => s.id !== studentId && s.current_level === myLevel).length;
+  if (count === 0) {
+    el.textContent = '';
+    el.style.display = 'none';
+  } else {
+    el.textContent = `👥 ${count} ${count === 1 ? 'other' : 'others'} at this level`;
+    el.style.display = 'inline-block';
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -335,11 +385,11 @@ function animateLevelComplete(rewards) {
   const levelInfo = document.getElementById('level-info');
   levelInfo.style.transition = 'transform 0.5s ease';
   levelInfo.style.transform = 'scale(1.05)';
-  
+
   setTimeout(() => {
     levelInfo.style.transform = 'scale(1)';
   }, 500);
-  
+
   // Show rewards notification
   if (rewards && rewards.length > 0) {
     const rewardText = rewards.join(', ');
@@ -363,7 +413,7 @@ function animateLevelComplete(rewards) {
       <p style="font-weight: bold; color: #52b788;">${escapeHtml(rewardText)}</p>
     `;
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
       notification.remove();
     }, 3000);
