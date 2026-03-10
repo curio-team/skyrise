@@ -2,6 +2,18 @@ import WebSocket from 'ws';
 import { connectionManager } from './connection-manager';
 import { getDatabase } from '../database/db';
 import { levelConfig } from '../config/levelConfig';
+import { getHandler } from '../level-handlers';
+import type { Level } from '../config/levelConfig';
+
+function sanitizeLevel(level: Level): Record<string, unknown> {
+  const handler = getHandler(level.type ?? 'static');
+  const clientConfig = handler && level.handlerConfig
+    ? handler.getClientConfig(level.handlerConfig)
+    : {};
+  const { handlerConfig: _raw, ...rest } = level as unknown as Record<string, unknown>;
+  void _raw;
+  return { ...rest, handlerConfig: clientConfig };
+}
 
 export interface WebSocketMessage {
   type: string;
@@ -15,6 +27,12 @@ export function handleMessage(ws: WebSocket, message: string): void {
     switch (parsedMessage.type) {
       case 'complete_level':
         handleCompleteLevel(ws, parsedMessage.data);
+        break;
+      case 'submit_answer':
+        handleSubmitAnswer(ws, parsedMessage.data);
+        break;
+      case 'button_clicked':
+        handleButtonClicked(ws, parsedMessage.data);
         break;
       case 'request_room_state':
         handleRequestRoomState(ws);
@@ -109,6 +127,160 @@ function handleCompleteLevel(ws: WebSocket, data: any): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Shared completion logic used by all auto-check handlers
+// ---------------------------------------------------------------------------
+
+function completeLevelForStudent(
+  ws: WebSocket,
+  roomCode: string,
+  studentId: number,
+  levelId: number,
+): boolean {
+  const db = getDatabase();
+
+  const student = db.getStudentById(studentId);
+  const room = db.getRoomByCode(roomCode);
+  if (!student || !room || student.room_id !== room.id) {
+    sendError(ws, 'Invalid student');
+    return false;
+  }
+
+  const level = levelConfig.getLevelById(levelId);
+  if (!level) {
+    sendError(ws, 'Invalid level');
+    return false;
+  }
+
+  if (db.hasCompletedLevel(studentId, levelId)) {
+    sendError(ws, 'Level already completed');
+    return false;
+  }
+
+  const currentLevel = db.getCurrentLevel(studentId);
+  if (levelId !== currentLevel) {
+    sendError(ws, `Student must complete level ${currentLevel} first`);
+    return false;
+  }
+
+  db.addProgress(studentId, levelId);
+  level.rewards.forEach((reward) => db.addInventoryItem(studentId, reward));
+
+  const updatedStudent = db.getStudentWithProgress(studentId);
+  connectionManager.broadcastToRoom(roomCode, {
+    type: 'level_completed',
+    data: { studentId, levelId, student: updatedStudent, rewards: level.rewards },
+  });
+
+  console.log(`Level ${levelId} auto-completed for student ${studentId}`);
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Auto-check handlers (student-initiated)
+// ---------------------------------------------------------------------------
+
+/**
+ * Handles multiple_choice and open_input submissions.
+ * Expected payload: { levelId: number, submission: <handler-specific object> }
+ */
+function handleSubmitAnswer(ws: WebSocket, data: any): void {
+  const clientInfo = connectionManager.getClientInfo(ws);
+  if (!clientInfo) {
+    sendError(ws, 'Client not registered');
+    return;
+  }
+
+  if (clientInfo.isTeacher) {
+    sendError(ws, 'Teachers cannot submit answers');
+    return;
+  }
+
+  const studentId = clientInfo.studentId;
+  if (!studentId) {
+    sendError(ws, 'Student ID not found in session');
+    return;
+  }
+
+  const levelId: number = typeof data?.levelId === 'number' ? data.levelId : parseInt(data?.levelId);
+  if (!levelId || isNaN(levelId)) {
+    sendError(ws, 'Missing or invalid levelId');
+    return;
+  }
+
+  const level = levelConfig.getLevelById(levelId);
+  if (!level) {
+    sendError(ws, 'Invalid level');
+    return;
+  }
+
+  const handler = getHandler(level.type);
+  if (!handler) {
+    sendError(ws, `No handler registered for level type '${level.type}'`);
+    return;
+  }
+
+  const result = handler.validate(data?.submission ?? {}, level.handlerConfig ?? {});
+  if (!result.success) {
+    connectionManager.sendToClient(ws, {
+      type: 'answer_rejected',
+      data: { levelId, message: result.message ?? 'Incorrect answer.' },
+    });
+    return;
+  }
+
+  completeLevelForStudent(ws, clientInfo.roomCode, studentId, levelId);
+}
+
+/**
+ * Handles click_button submissions.
+ * Expected payload: { levelId: number }
+ */
+function handleButtonClicked(ws: WebSocket, data: any): void {
+  const clientInfo = connectionManager.getClientInfo(ws);
+  if (!clientInfo) {
+    sendError(ws, 'Client not registered');
+    return;
+  }
+
+  if (clientInfo.isTeacher) {
+    sendError(ws, 'Teachers cannot submit button clicks');
+    return;
+  }
+
+  const studentId = clientInfo.studentId;
+  if (!studentId) {
+    sendError(ws, 'Student ID not found in session');
+    return;
+  }
+
+  const levelId: number = typeof data?.levelId === 'number' ? data.levelId : parseInt(data?.levelId);
+  if (!levelId || isNaN(levelId)) {
+    sendError(ws, 'Missing or invalid levelId');
+    return;
+  }
+
+  const level = levelConfig.getLevelById(levelId);
+  if (!level) {
+    sendError(ws, 'Invalid level');
+    return;
+  }
+
+  const handler = getHandler(level.type);
+  if (!handler) {
+    sendError(ws, `No handler registered for level type '${level.type}'`);
+    return;
+  }
+
+  const result = handler.validate({ clicked: true }, level.handlerConfig ?? {});
+  if (!result.success) {
+    sendError(ws, result.message ?? 'Click not accepted.');
+    return;
+  }
+
+  completeLevelForStudent(ws, clientInfo.roomCode, studentId, levelId);
+}
+
 function handleRequestRoomState(ws: WebSocket): void {
   const clientInfo = connectionManager.getClientInfo(ws);
   if (!clientInfo) {
@@ -126,7 +298,7 @@ function handleRequestRoomState(ws: WebSocket): void {
     }
 
     const students = db.getAllStudentsWithProgress(room.id);
-    const levels = levelConfig.getAllLevels();
+    const levels = levelConfig.getAllLevels().map(sanitizeLevel);
 
     connectionManager.sendToClient(ws, {
       type: 'room_state',

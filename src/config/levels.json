@@ -1,6 +1,7 @@
 [
   {
     "id": 1,
+    "type": "static",
     "title": "Introduction to the City",
     "description": "Welcome to our city! Your first task is to introduce yourself to your classmates and learn about the project goals.",
     "assignmentText": "Create a short presentation about yourself and share it with the class. Include your name, favorite hobby, and what you're most excited to learn this year.",
@@ -8,20 +9,36 @@
   },
   {
     "id": 2,
+    "type": "multiple_choice",
     "title": "Understanding Our Community",
     "description": "Learn about the different roles in a community and what makes a city function.",
     "assignmentText": "Research three different community roles (like teacher, firefighter, doctor, etc.) and write a paragraph about each one explaining what they do and why they're important.",
-    "rewards": ["book_icon", "community_star"]
+    "rewards": ["book_icon", "community_star"],
+    "handlerConfig": {
+      "question": "Which community role is primarily responsible for responding to fires and keeping people safe from them?",
+      "choices": ["Teacher", "Firefighter", "Software Engineer", "Librarian"],
+      "correctIndex": 1
+    }
   },
   {
     "id": 3,
+    "type": "open_input",
     "title": "Creative Planning",
     "description": "Think about what makes a great city and plan your contribution.",
     "assignmentText": "Draw or design your ideal neighborhood. Include at least 5 different buildings or spaces and label what each one is used for. Be creative!",
-    "rewards": ["blueprint_scroll", "creativity_badge"]
+    "rewards": ["blueprint_scroll", "creativity_badge"],
+    "handlerConfig": {
+      "prompt": "Describe your ideal neighborhood. What buildings or spaces does it have, and what makes it special?",
+      "placeholder": "My neighborhood has a park, a library, ...",
+      "validation": {
+        "type": "min_length",
+        "length": 80
+      }
+    }
   },
   {
     "id": 4,
+    "type": "static",
     "title": "Collaboration Challenge",
     "description": "Work together with your classmates on a group project.",
     "assignmentText": "Form a team of 3-4 students and create a poster about why teamwork is important. Present your poster to the class and explain what you learned.",
@@ -29,13 +46,23 @@
   },
   {
     "id": 5,
+    "type": "open_input",
     "title": "Problem Solving",
     "description": "Identify a challenge in your school or community and propose a solution.",
     "assignmentText": "Think of one problem you've noticed at school or in your neighborhood. Write a detailed plan for how you would solve it, including at least 3 specific steps.",
-    "rewards": ["lightbulb_badge", "innovator_medal"]
+    "rewards": ["lightbulb_badge", "innovator_medal"],
+    "handlerConfig": {
+      "prompt": "Describe a problem you've noticed and your plan to solve it. Include at least 3 specific steps.",
+      "placeholder": "The problem I noticed is... My first step would be...",
+      "validation": {
+        "type": "contains_all",
+        "keywords": ["step", "problem", "solution"]
+      }
+    }
   },
   {
     "id": 6,
+    "type": "static",
     "title": "Leadership Skills",
     "description": "Take the lead on organizing an activity or helping others.",
     "assignmentText": "Organize and lead a study group session for your peers on a topic of your choice. Help at least 3 classmates understand something new.",
@@ -43,27 +70,48 @@
   },
   {
     "id": 7,
+    "type": "multiple_choice",
     "title": "Research Master",
     "description": "Conduct in-depth research on a topic that interests you.",
     "assignmentText": "Choose a historical event or scientific discovery that fascinates you. Research it thoroughly and create a 5-minute presentation with at least 3 interesting facts you learned.",
-    "rewards": ["scholar_scroll", "gold_star"]
+    "rewards": ["scholar_scroll", "gold_star"],
+    "handlerConfig": {
+      "question": "Which scientist is credited with the theory of general relativity?",
+      "choices": ["Isaac Newton", "Nikola Tesla", "Albert Einstein", "Marie Curie"],
+      "correctIndex": 2
+    }
   },
   {
     "id": 8,
+    "type": "open_input",
     "title": "Communication Excellence",
     "description": "Demonstrate clear and effective communication skills.",
     "assignmentText": "Write a persuasive letter to the principal suggesting one improvement for the school. Use proper letter format and include at least 3 supporting reasons for your suggestion.",
-    "rewards": ["eloquence_badge", "communication_ribbon"]
+    "rewards": ["eloquence_badge", "communication_ribbon"],
+    "handlerConfig": {
+      "prompt": "Write your persuasive letter to the principal here.",
+      "placeholder": "Dear Principal, I am writing to suggest...",
+      "validation": {
+        "type": "contains_all",
+        "keywords": ["dear", "because", "would"]
+      }
+    }
   },
   {
     "id": 9,
+    "type": "click_button",
     "title": "Innovation Project",
     "description": "Create something new that could benefit your community.",
-    "assignmentText": "Design an invention or app that would make life easier for people in your community. Draw it, explain how it works, and describe who it would help.",
-    "rewards": ["inventor_wrench", "innovation_trophy"]
+    "assignmentText": "Design an invention or app that would make life easier for people in your community. Draw it, explain how it works, and describe who it would help. Then hit the Submit button — if you can catch it!",
+    "rewards": ["inventor_wrench", "innovation_trophy"],
+    "handlerConfig": {
+      "buttonLabel": "Submit Innovation",
+      "injectScript": "(function(){var btn=document.getElementById('level-action-btn');if(!btn)return;btn.addEventListener('mouseover',function move(){var x=Math.random()*(window.innerWidth-140);var y=Math.random()*(window.innerHeight-60);btn.style.position='fixed';btn.style.left=x+'px';btn.style.top=y+'px';});})();"
+    }
   },
   {
     "id": 10,
+    "type": "static",
     "title": "Master Builder",
     "description": "Complete the ultimate challenge and become a Master Builder!",
     "assignmentText": "Create a comprehensive portfolio showcasing your best work from all previous levels. Include reflections on what you learned and how you've grown. Present it to the class.",

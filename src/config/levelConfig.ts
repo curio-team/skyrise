@@ -3,10 +3,14 @@ import path from 'path';
 
 export interface Level {
   id: number;
+  /** Determines which handler processes this level. Defaults to 'static'. */
+  type: string;
   title: string;
   description: string;
   assignmentText: string;
   rewards: string[];
+  /** Handler-specific configuration (e.g. choices for multiple_choice). */
+  handlerConfig?: Record<string, unknown>;
 }
 
 class LevelConfig {

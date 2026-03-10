@@ -6,6 +6,19 @@ import { initializeDatabase, getDatabase } from './database/db';
 import { levelConfig } from './config/levelConfig';
 import { handleConnection } from './websocket/message-handlers';
 import { connectionManager } from './websocket/connection-manager';
+import { getHandler } from './level-handlers';
+import type { Level } from './config/levelConfig';
+
+/** Strip server-only fields (e.g. correctIndex) before sending a level to clients. */
+function sanitizeLevel(level: Level): Record<string, unknown> {
+  const handler = getHandler(level.type ?? 'static');
+  const clientConfig = handler && level.handlerConfig
+    ? handler.getClientConfig(level.handlerConfig)
+    : {};
+  const { handlerConfig: _raw, ...rest } = level as unknown as Record<string, unknown>;
+  void _raw;
+  return { ...rest, handlerConfig: clientConfig };
+}
 
 const PORT = process.env.PORT || 3000;
 const DB_PATH = process.env.DB_PATH || './skyrise.db';
@@ -95,7 +108,7 @@ app.get('/api/rooms/:code/config', (req, res) => {
 
     return res.json({
       success: true,
-      levels: levelConfig.getAllLevels(),
+      levels: levelConfig.getAllLevels().map(sanitizeLevel),
       totalLevels: levelConfig.getTotalLevels()
     });
   } catch (error) {
@@ -120,7 +133,7 @@ app.get('/api/rooms/:code/state', (req, res) => {
       success: true,
       roomCode: code.toUpperCase(),
       students,
-      levels: levelConfig.getAllLevels(),
+      levels: levelConfig.getAllLevels().map(sanitizeLevel),
       totalLevels: levelConfig.getTotalLevels()
     });
   } catch (error) {

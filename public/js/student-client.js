@@ -130,6 +130,9 @@ function handleMessage(message) {
     case 'level_completed':
       handleLevelCompleted(message.data);
       break;
+    case 'answer_rejected':
+      showInteractionFeedback(message.data.message, false);
+      break;
     case 'error':
       showError(message.data.message);
       break;
@@ -191,6 +194,140 @@ function updateStudentView() {
   } else {
     document.getElementById('inventory-container').style.display = 'none';
   }
+
+  // Render type-specific interaction UI
+  renderLevelInteraction(level);
+}
+
+// ---------------------------------------------------------------------------
+// Level interaction rendering
+// ---------------------------------------------------------------------------
+
+function renderLevelInteraction(level) {
+  const container = document.getElementById('level-interaction');
+  const staticHint = document.getElementById('static-hint');
+
+  if (!level || level.type === 'static' || !level.type) {
+    container.style.display = 'none';
+    container.innerHTML = '';
+    staticHint.style.display = 'block';
+    return;
+  }
+
+  staticHint.style.display = 'none';
+  container.style.display = 'block';
+
+  switch (level.type) {
+    case 'multiple_choice':
+      container.innerHTML = renderMultipleChoice(level);
+      break;
+    case 'open_input':
+      container.innerHTML = renderOpenInput(level);
+      break;
+    case 'click_button':
+      container.innerHTML = renderClickButton(level);
+      // Inject the trick script after the element is in the DOM
+      if (level.handlerConfig && level.handlerConfig.injectScript) {
+        try {
+          const fn = new Function(level.handlerConfig.injectScript);
+          fn();
+        } catch (e) {
+          console.warn('injectScript error:', e);
+        }
+      }
+      break;
+    default:
+      container.innerHTML = '';
+      staticHint.style.display = 'block';
+  }
+}
+
+function renderMultipleChoice(level) {
+  const cfg = level.handlerConfig || {};
+  const choices = Array.isArray(cfg.choices) ? cfg.choices : [];
+  const question = escapeHtml(cfg.question || 'Choose the correct answer:');
+
+  const choicesHtml = choices.map((choice, i) => `
+    <label class="mc-choice">
+      <input type="radio" name="mc-choice-${level.id}" value="${i}">
+      ${escapeHtml(choice)}
+    </label>
+  `).join('');
+
+  return `
+    <div class="level-interaction-panel">
+      <div class="mc-question">${question}</div>
+      <div class="mc-choices">${choicesHtml}</div>
+      <div id="interaction-feedback" class="answer-feedback"></div>
+      <button class="btn" style="margin-top:16px;" onclick="submitMultipleChoice(${level.id})">Submit Answer</button>
+    </div>
+  `;
+}
+
+function renderOpenInput(level) {
+  const cfg = level.handlerConfig || {};
+  const prompt = escapeHtml(cfg.prompt || 'Enter your answer:');
+  const placeholder = escapeHtml(cfg.placeholder || '');
+
+  return `
+    <div class="level-interaction-panel">
+      <div class="open-input-prompt">${prompt}</div>
+      <textarea id="open-input-answer" class="open-input-field" placeholder="${placeholder}"></textarea>
+      <div id="interaction-feedback" class="answer-feedback"></div>
+      <button class="btn" onclick="submitOpenInput(${level.id})">Submit Answer</button>
+    </div>
+  `;
+}
+
+function renderClickButton(level) {
+  const cfg = level.handlerConfig || {};
+  const label = escapeHtml(cfg.buttonLabel || 'Click Me!');
+
+  return `
+    <div class="level-interaction-panel">
+      <div class="click-button-wrapper">
+        <button id="level-action-btn" class="btn btn-secondary" style="width:auto; padding: 14px 32px; font-size:1.1em;"
+          onclick="submitButtonClick(${level.id})">
+          ${label}
+        </button>
+      </div>
+      <div id="interaction-feedback" class="answer-feedback"></div>
+    </div>
+  `;
+}
+
+// ---------------------------------------------------------------------------
+// Submission helpers
+// ---------------------------------------------------------------------------
+
+function submitMultipleChoice(levelId) {
+  const selected = document.querySelector(`input[name="mc-choice-${levelId}"]:checked`);
+  if (!selected) {
+    showInteractionFeedback('Please select an answer first.', false);
+    return;
+  }
+  sendMessage({ type: 'submit_answer', data: { levelId, submission: { selectedIndex: parseInt(selected.value) } } });
+}
+
+function submitOpenInput(levelId) {
+  const textarea = document.getElementById('open-input-answer');
+  const answer = textarea ? textarea.value.trim() : '';
+  if (!answer) {
+    showInteractionFeedback('Please write your answer first.', false);
+    return;
+  }
+  sendMessage({ type: 'submit_answer', data: { levelId, submission: { answer } } });
+}
+
+function submitButtonClick(levelId) {
+  sendMessage({ type: 'button_clicked', data: { levelId } });
+}
+
+function showInteractionFeedback(message, success) {
+  const el = document.getElementById('interaction-feedback');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'answer-feedback ' + (success ? 'success' : 'error');
 }
 
 function animateLevelComplete(rewards) {

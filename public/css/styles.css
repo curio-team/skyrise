@@ -310,6 +310,108 @@ body {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
 }
 
+/* ── Level interaction panels ────────────────────────────────── */
+.level-interaction-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Multiple choice */
+.mc-question {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.mc-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mc-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-size: 1em;
+}
+
+.mc-choice:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.mc-choice input[type="radio"] {
+  accent-color: #667eea;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Open input */
+.open-input-prompt {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.open-input-field {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1em;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+
+.open-input-field:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* Click button */
+.click-button-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  position: relative;
+  min-height: 80px;
+}
+
+/* Feedback */
+.answer-feedback {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-weight: 600;
+  display: none;
+}
+
+.answer-feedback.error {
+  background: #fee;
+  color: #c33;
+  display: block;
+}
+
+.answer-feedback.success {
+  background: #e8f8ee;
+  color: #1a7a3e;
+  display: block;
+}
+
 .progress-indicator {
   text-align: center;
   padding: 20px;
