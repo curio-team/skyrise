@@ -62,12 +62,6 @@ class SkylineRenderer {
     this.ctx.fillStyle = skyGradient;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    if (this.students.length === 0) {
-      this.drawBackgroundImages(40);
-      this.drawEmptyState();
-      return;
-    }
-
     // Draw background images (behind buildings)
     const groundHeight = 40;
     this.drawBackgroundImages(groundHeight);
@@ -76,6 +70,11 @@ class SkylineRenderer {
     // (groundHeight already defined above)
     this.ctx.fillStyle = '#2d3436';
     this.ctx.fillRect(0, this.height - groundHeight, this.width, groundHeight);
+
+    if (this.students.length === 0) {
+      this.drawEmptyState();
+      return;
+    }
 
     // Calculate building dimensions
     const padding = 20;
@@ -91,8 +90,8 @@ class SkylineRenderer {
     this.students.forEach((student, index) => {
       const x = padding + (index * (buildingWidth + spacing));
       const levelHeight = maxBuildingHeight / this.totalLevels;
-      const height = student.current_level > 1 
-        ? (student.current_level - 1) * levelHeight 
+      const height = student.current_level > 1
+        ? (student.current_level - 1) * levelHeight
         : levelHeight * 0.3; // Show small base for level 1
       const y = this.height - groundHeight - height;
 
@@ -211,8 +210,8 @@ class SkylineRenderer {
       const student = this.students[i];
       const bx = padding + (i * (buildingWidth + spacing));
       const levelHeight = maxBuildingHeight / this.totalLevels;
-      const height = student.current_level > 1 
-        ? (student.current_level - 1) * levelHeight 
+      const height = student.current_level > 1
+        ? (student.current_level - 1) * levelHeight
         : levelHeight * 0.3;
       const by = this.height - groundHeight - height;
 

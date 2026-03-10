@@ -22,16 +22,19 @@ A collaborative educational game where students progress through learning levels
 
 1. Clone the repository
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Build the TypeScript code:
+
    ```bash
    npm run build
    ```
 
 4. Start the server:
+
    ```bash
    npm start
    ```
@@ -98,6 +101,7 @@ Edit `src/config/levels.json` to customize levels:
 ```
 
 After editing, rebuild and restart:
+
 ```bash
 npm run build
 npm start
@@ -105,7 +109,7 @@ npm start
 
 ## Project Structure
 
-```
+```txt
 skyrise/
 ├── src/
 │   ├── config/
@@ -147,6 +151,7 @@ skyrise/
 Connect to: `ws://localhost:3000/ws?room=ROOMCODE&role=teacher|student&studentId=123`
 
 **Client → Server Messages:**
+
 ```json
 {"type": "complete_level", "data": {"studentId": 1, "levelId": 2}}
 {"type": "request_room_state", "data": {}}
@@ -154,6 +159,7 @@ Connect to: `ws://localhost:3000/ws?room=ROOMCODE&role=teacher|student&studentId
 ```
 
 **Server → Client Messages:**
+
 ```json
 {"type": "room_state", "data": {"students": [...], "levels": [...], ...}}
 {"type": "student_joined", "data": {"student": {...}}}
@@ -168,6 +174,7 @@ Connect to: `ws://localhost:3000/ws?room=ROOMCODE&role=teacher|student&studentId
 ### Real-time Skyline Visualization
 
 The skyline is rendered using HTML5 Canvas with:
+
 - Each student represented as a colored building
 - Building height proportional to completed levels
 - Interactive selection by clicking buildings
@@ -204,11 +211,3 @@ The skyline is rendered using HTML5 Canvas with:
 **Database locked**: Only one server instance can access the SQLite database at a time
 
 **Students can't join**: Verify room code is correct (case-insensitive) and room exists
-
-## License
-
-MIT
-
-## Author
-
-curio-team
