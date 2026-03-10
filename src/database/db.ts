@@ -9,6 +9,10 @@ export interface Room {
   last_activity: number;
 }
 
+export interface RoomWithCount extends Room {
+  student_count: number;
+}
+
 export interface Student {
   id: number;
   room_id: number;
@@ -85,6 +89,22 @@ class DatabaseService {
     return result.changes;
   }
 
+  getAllRooms(): RoomWithCount[] {
+    const stmt = this.db.prepare(`
+      SELECT r.*, COUNT(s.id) as student_count
+      FROM rooms r
+      LEFT JOIN students s ON s.room_id = r.id
+      GROUP BY r.id
+      ORDER BY r.last_activity DESC
+    `);
+    return stmt.all() as RoomWithCount[];
+  }
+
+  deleteRoom(roomId: number): void {
+    const stmt = this.db.prepare('DELETE FROM rooms WHERE id = ?');
+    stmt.run(roomId);
+  }
+
   // Student operations
   addStudent(roomId: number, name: string, color: string): Student {
     const now = Date.now();
@@ -151,7 +171,7 @@ class DatabaseService {
   getCurrentLevel(studentId: number): number {
     const progress = this.getStudentProgress(studentId);
     if (progress.length === 0) return 1;
-    
+
     // Find the highest completed level
     const maxLevel = Math.max(...progress.map(p => p.level_id));
     return maxLevel + 1; // Next level to complete
@@ -200,7 +220,7 @@ class DatabaseService {
     return students.map(student => {
       const progress = this.getStudentProgress(student.id);
       const inventory = this.getStudentInventory(student.id);
-      
+
       return {
         ...student,
         current_level: this.getCurrentLevel(student.id),
@@ -223,7 +243,7 @@ class DatabaseService {
         code += characters.charAt(Math.floor(Math.random() * characters.length));
       }
       attempts++;
-      
+
       if (attempts >= maxAttempts) {
         throw new Error('Failed to generate unique room code');
       }

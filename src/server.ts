@@ -46,15 +46,56 @@ function getRandomColor(): string {
 
 // API Routes
 
+// List all active rooms
+app.get('/api/rooms', (req, res) => {
+  const teacherCode = process.env.TEACHER_CODE;
+  const provided = req.query.teacherCode as string | undefined;
+  if (teacherCode && provided !== teacherCode) {
+    return res.status(403).json({ success: false, error: 'Invalid teacher code' });
+  }
+  try {
+    const rooms = db.getAllRooms();
+    return res.json({ success: true, rooms });
+  } catch (error) {
+    console.error('Error listing rooms:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list rooms' });
+  }
+});
+
+// Delete a room
+app.delete('/api/rooms/:code', (req, res) => {
+  const teacherCode = process.env.TEACHER_CODE;
+  const provided = req.body.teacherCode as string | undefined;
+  if (teacherCode && provided !== teacherCode) {
+    return res.status(403).json({ success: false, error: 'Invalid teacher code' });
+  }
+  try {
+    const { code } = req.params;
+    const room = db.getRoomByCode(code.toUpperCase());
+    if (!room) {
+      return res.status(404).json({ success: false, error: 'Room not found' });
+    }
+    db.deleteRoom(room.id);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting room:', error);
+    return res.status(500).json({ success: false, error: 'Failed to delete room' });
+  }
+});
+
 // Create a new room
-app.post('/api/rooms', (_req, res) => {
+app.post('/api/rooms', (req, res) => {
+  const teacherCode = process.env.TEACHER_CODE;
+  if (teacherCode && req.body.teacherCode !== teacherCode) {
+    return res.status(403).json({ success: false, error: 'Invalid teacher code' });
+  }
   try {
     const code = db.generateRoomCode();
     const room = db.createRoom(code);
-    res.json({ success: true, roomCode: code, roomId: room.id });
+    return res.json({ success: true, roomCode: code, roomId: room.id });
   } catch (error) {
     console.error('Error creating room:', error);
-    res.status(500).json({ success: false, error: 'Failed to create room' });
+    return res.status(500).json({ success: false, error: 'Failed to create room' });
   }
 });
 
@@ -75,7 +116,7 @@ app.post('/api/rooms/:code/join', (req, res) => {
 
     // Check if student already exists (reconnection)
     let student = db.getStudentByRoomAndName(room.id, name);
-    
+
     if (!student) {
       // Create new student
       const color = getRandomColor();
@@ -85,8 +126,8 @@ app.post('/api/rooms/:code/join', (req, res) => {
     // Update room activity
     db.updateRoomActivity(room.id);
 
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       studentId: student.id,
       student: db.getStudentWithProgress(student.id)
     });
@@ -101,7 +142,7 @@ app.get('/api/rooms/:code/config', (req, res) => {
   try {
     const { code } = req.params;
     const room = db.getRoomByCode(code.toUpperCase());
-    
+
     if (!room) {
       return res.status(404).json({ success: false, error: 'Room not found' });
     }
@@ -122,13 +163,13 @@ app.get('/api/rooms/:code/state', (req, res) => {
   try {
     const { code } = req.params;
     const room = db.getRoomByCode(code.toUpperCase());
-    
+
     if (!room) {
       return res.status(404).json({ success: false, error: 'Room not found' });
     }
 
     const students = db.getAllStudentsWithProgress(room.id);
-    
+
     return res.json({
       success: true,
       roomCode: code.toUpperCase(),

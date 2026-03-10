@@ -18,8 +18,31 @@
       <div id="error-message"
            class="error-message"
            style="display: none;"></div>
+
+      <div class="form-group">
+        <label for="room-code">Teacher Code</label>
+        <input class="input"
+               id="teacher-code-input"
+               type="password"
+               placeholder="Enter teacher code"
+               onkeydown="if(event.key==='Enter') createRoom()" />
+      </div>
+
       <button class="btn"
               onclick="createRoom()">Create New Room</button>
+
+      <div class="rooms-section"
+           id="rooms-section">
+        <div class="rooms-section-header">
+          <span>Active Rooms</span>
+          <button class="btn-link"
+                  onclick="loadRooms()">↻ Refresh</button>
+        </div>
+        <div class="rooms-list"
+             id="rooms-list">
+          <p class="rooms-empty">Enter your teacher code above to see active rooms.</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -32,8 +55,12 @@
               class="connection-status connecting"></span>
         🏙️ Skyrise
       </h1>
-      <div class="room-code"
-           id="room-code-display"></div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="room-code"
+             id="room-code-display"></div>
+        <button class="btn-leave"
+                onclick="leaveRoom()">&#8592; Leave</button>
+      </div>
     </div>
 
     <div class="main-content">

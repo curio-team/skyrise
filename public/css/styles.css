@@ -711,6 +711,185 @@ body {
   font-size: 1.1em;
 }
 
+/* ── Rooms panel (teacher login) ── */
+.rooms-section {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+.rooms-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 0.78em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.85em;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+  font-weight: 600;
+}
+
+.btn-link:hover {
+  background: var(--accent-dim);
+}
+
+.rooms-list {
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-hover) transparent;
+}
+
+.rooms-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.rooms-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rooms-list::-webkit-scrollbar-thumb {
+  background: var(--bg-hover);
+  border-radius: 2px;
+}
+
+.rooms-loading,
+.rooms-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px;
+  font-size: 0.88em;
+}
+
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  gap: 10px;
+}
+
+.room-item.room-item-last {
+  border-color: var(--border-accent);
+  background: var(--accent-dim);
+}
+
+.room-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.room-item-code {
+  font-size: 1.05em;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.room-item-last .room-item-code {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.room-item-badge {
+  display: inline-block;
+  font-size: 0.66em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.room-item-meta {
+  font-size: 0.78em;
+  color: var(--text-secondary);
+}
+
+.room-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-action {
+  border: none;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75em;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: opacity 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.btn-join {
+  background: var(--accent);
+  color: #070d1a;
+}
+
+.btn-join:hover {
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.btn-delete {
+  background: rgba(255, 69, 96, 0.12);
+  color: var(--red);
+  border: 1px solid rgba(255, 69, 96, 0.25);
+}
+
+.btn-delete:hover {
+  background: rgba(255, 69, 96, 0.24);
+}
+
+/* ── Leave Room button (dashboard header) ── */
+.btn-leave {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75em;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-leave:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .main-content {

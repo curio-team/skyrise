@@ -11,43 +11,88 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="form-container"
-         style="max-width: 600px;">
-      <h1 style="font-size: 2.8em; margin-bottom: 10px;">🏙️ Skyrise</h1>
-      <p class="tagline">
-        Build a city together as you progress through your learning journey
-      </p>
+  <div class="container"
+       id="login-container">
+    <div class="form-container">
+      <h1>🏙️ Skyrise</h1>
+      <div id="error-message"
+           class="error-message"
+           style="display: none;"></div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;">
-        <a href="/teacher.html"
-           style="text-decoration: none;">
-          <button class="btn"
-                  style="height: 110px; font-size: 1.05em; letter-spacing: 0.02em;">
-            👨‍🏫<br>Teacher<br>Dashboard
-          </button>
-        </a>
-        <a href="/student.html"
-           style="text-decoration: none;">
-          <button class="btn btn-secondary"
-                  style="height: 110px; font-size: 1.05em; letter-spacing: 0.02em;">
-            🎓<br>Student<br>View
-          </button>
-        </a>
+      <div class="form-group">
+        <label for="room-code">Room Code</label>
+        <input type="text"
+               id="room-code"
+               placeholder="Enter 6-digit code"
+               maxlength="6"
+               style="text-transform: uppercase;">
       </div>
 
-      <div class="how-it-works">
-        <h3>How it works</h3>
-        <ul>
-          <li><strong>Teachers</strong> create a room and share the code</li>
-          <li><strong>Students</strong> join using the room code</li>
-          <li>Complete assignments to progress through levels</li>
-          <li>Watch your buildings grow in the shared city skyline!</li>
-          <li>Collect rewards as you advance</li>
-        </ul>
+      <div class="form-group">
+        <label for="student-name">Your Name</label>
+        <input type="text"
+               id="student-name"
+               placeholder="Enter your name"
+               maxlength="50">
+      </div>
+
+      <button class="btn"
+              onclick="joinRoom()">Join Room</button>
+    </div>
+  </div>
+
+  <div class="container"
+       id="student-container"
+       style="display: none;">
+    <div class="header">
+      <h1>
+        <span id="connection-indicator"
+              class="connection-status connecting"></span>
+        🏙️ <span id="student-name-display"></span>
+      </h1>
+      <div class="room-code"
+           id="room-code-display"></div>
+    </div>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+      <div class="progress-indicator">
+        <div class="progress-text">
+          Level <span id="current-level">1</span> of <span id="total-levels">10</span>
+        </div>
+      </div>
+
+      <div class="level-info"
+           id="level-info">
+        <div class="level-title"
+             id="level-title">Loading...</div>
+        <div class="level-description"
+             id="level-description"></div>
+        <div class="assignment-text"
+             id="assignment-text">
+          Waiting for assignment...
+        </div>
+      </div>
+
+      <!-- Rendered by student-client.js depending on level type -->
+      <div id="level-interaction"
+           style="display:none;"></div>
+
+      <div id="static-hint"
+           class="static-hint">
+        💡 Complete the assignment above, then ask your teacher to mark it as complete!
+      </div>
+
+      <div class="inventory-display"
+           id="inventory-container"
+           style="display: none;">
+        <div class="inventory-title">🎒 My Rewards</div>
+        <div class="inventory-items"
+             id="inventory-items"></div>
       </div>
     </div>
   </div>
+
+  <script src="/js/student-client.js"></script>
 </body>
 
 </html>
