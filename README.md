@@ -33,24 +33,26 @@ A collaborative educational game where students progress through learning levels
    npm run build
    ```
 
-4. Start the server:
+4. Copy the example environment file and edit as needed:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+5. Start the server:
 
    ```bash
    npm start
    ```
 
-5. Open your browser to `http://localhost:3000`
+6. Open your browser to `http://localhost:3000`
 
 ## Development
 
 For development with auto-rebuild:
 
 ```bash
-# Terminal 1: Watch TypeScript compilation
-npm run watch
-
-# Terminal 2: Start the server (restart manually after changes)
-npm start
+npm run dev
 ```
 
 ## Usage
@@ -75,15 +77,6 @@ npm start
 
 ## Configuration
 
-### Environment Variables
-
-Create a `.env` file in the root directory (see `.env.example`):
-
-```env
-PORT=3000
-DB_PATH=./skyrise.db
-```
-
 ### Level Configuration
 
 Edit `src/config/levels.json` to customize levels:
@@ -106,108 +99,3 @@ After editing, rebuild and restart:
 npm run build
 npm start
 ```
-
-## Project Structure
-
-```txt
-skyrise/
-├── src/
-│   ├── config/
-│   │   ├── levels.json          # Level definitions
-│   │   └── levelConfig.ts       # Level configuration loader
-│   ├── database/
-│   │   ├── schema.sql           # Database schema
-│   │   └── db.ts                # Database service layer
-│   ├── websocket/
-│   │   ├── connection-manager.ts    # WebSocket connection management
-│   │   └── message-handlers.ts     # Message routing and business logic
-│   └── server.ts                # Main Express server
-├── public/
-│   ├── css/
-│   │   └── styles.css           # Shared styles
-│   ├── js/
-│   │   ├── skyline-renderer.js      # Canvas-based skyline visualization
-│   │   ├── teacher-client.js        # Teacher WebSocket client
-│   │   └── student-client.js        # Student WebSocket client
-│   ├── index.html               # Landing page
-│   ├── teacher.html             # Teacher dashboard
-│   └── student.html             # Student view
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
-## API Endpoints
-
-### HTTP REST API
-
-- `POST /api/rooms` - Create a new room
-- `POST /api/rooms/:code/join` - Join a room as a student
-- `GET /api/rooms/:code/config` - Get level configuration
-- `GET /api/rooms/:code/state` - Get current room state
-
-### WebSocket Protocol
-
-Connect to: `ws://localhost:3000/ws?room=ROOMCODE&role=teacher|student&studentId=123`
-
-**Client → Server Messages:**
-
-```json
-{"type": "complete_level", "data": {"studentId": 1, "levelId": 2}}
-{"type": "request_room_state", "data": {}}
-{"type": "ping", "data": {}}
-```
-
-**Server → Client Messages:**
-
-```json
-{"type": "room_state", "data": {"students": [...], "levels": [...], ...}}
-{"type": "student_joined", "data": {"student": {...}}}
-{"type": "level_completed", "data": {"studentId": 1, "levelId": 2, "student": {...}, "rewards": [...]}}
-{"type": "student_disconnected", "data": {"studentId": 1}}
-{"type": "error", "data": {"message": "Error description"}}
-{"type": "pong", "data": {}}
-```
-
-## Features in Detail
-
-### Real-time Skyline Visualization
-
-The skyline is rendered using HTML5 Canvas with:
-
-- Each student represented as a colored building
-- Building height proportional to completed levels
-- Interactive selection by clicking buildings
-- Automatic scaling for large classes (30+ students)
-- Simple window pattern for visual appeal
-
-### Progress Tracking
-
-- Students start at Level 1
-- Must complete levels in order
-- Can rejoin rooms and maintain progress
-- Progress persists in SQLite database
-
-### Room Management
-
-- Rooms automatically clean up after 24 hours of inactivity
-- Unique 6-digit alphanumeric codes
-- Multiple rooms can run simultaneously
-- Students can reconnect if disconnected
-
-### Connection Health
-
-- Automatic ping/pong heartbeat every 30 seconds
-- Client-side reconnection with exponential backoff
-- Visual connection status indicators
-- Stale connection cleanup after 60 seconds
-
-## Troubleshooting
-
-**Build errors**: Ensure TypeScript v5+ is installed
-
-**WebSocket connection fails**: Check firewall settings and ensure port 3000 is accessible
-
-**Database locked**: Only one server instance can access the SQLite database at a time
-
-**Students can't join**: Verify room code is correct (case-insensitive) and room exists
