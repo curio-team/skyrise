@@ -441,6 +441,8 @@ body {
 
 /* ── Progress indicator ── */
 .progress-indicator {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 16px;
 }
 

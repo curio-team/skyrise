@@ -103,9 +103,9 @@ app.post('/api/rooms', (req, res) => {
 app.post('/api/rooms/:code/join', (req, res) => {
   try {
     const { code } = req.params;
-    const { name } = req.body;
+    const name: string = typeof req.body.name === 'string' ? req.body.name.trim() : '';
 
-    if (!name || name.trim().length === 0) {
+    if (!name) {
       return res.status(400).json({ success: false, error: 'Name is required' });
     }
 

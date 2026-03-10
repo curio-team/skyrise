@@ -41,6 +41,9 @@ async function joinRoom() {
       document.getElementById('room-code-display').textContent = roomCode;
       document.getElementById('student-name-display').textContent = studentName;
 
+      // Cache session so a page refresh reconnects automatically
+      saveSession(studentName);
+
       // Load levels configuration
       await loadLevels();
 
@@ -440,8 +443,64 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function saveSession(studentName) {
+  try {
+    sessionStorage.setItem('skyrise_session', JSON.stringify({ roomCode, studentId, studentName }));
+  } catch (e) { /* storage unavailable */ }
+}
+
+function clearSession() {
+  try { sessionStorage.removeItem('skyrise_session'); } catch (e) { /* ignore */ }
+}
+
+async function tryRestoreSession() {
+  let saved;
+  try {
+    const raw = sessionStorage.getItem('skyrise_session');
+    if (!raw) return false;
+    saved = JSON.parse(raw);
+  } catch (e) {
+    return false;
+  }
+
+  const { roomCode: savedRoom, studentName: savedName } = saved;
+  if (!savedRoom || !savedName) return false;
+
+  try {
+    const response = await fetch(`/api/rooms/${savedRoom}/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: savedName })
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      roomCode = savedRoom;
+      studentId = data.studentId;
+      studentData = data.student;
+
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('student-container').style.display = 'block';
+      document.getElementById('room-code-display').textContent = roomCode;
+      document.getElementById('student-name-display').textContent = savedName;
+
+      saveSession(savedName);
+      await loadLevels();
+      connectWebSocket();
+      updateStudentView();
+      return true;
+    }
+  } catch (e) { /* fall through */ }
+
+  clearSession();
+  return false;
+}
+
 // Handle Enter key in input fields
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  const restored = await tryRestoreSession();
+  if (restored) return;
+
   const inputs = document.querySelectorAll('#room-code, #student-name');
   inputs.forEach(input => {
     input.addEventListener('keypress', (e) => {
