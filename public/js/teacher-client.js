@@ -143,6 +143,9 @@ function handleMessage(message) {
     case 'student_disconnected':
       handleStudentDisconnected(message.data);
       break;
+    case 'student_kicked':
+      handleStudentKicked(message.data);
+      break;
     case 'error':
       showError(message.data.message);
       break;
@@ -193,6 +196,26 @@ function handleLevelCompleted(data) {
 function handleStudentDisconnected(data) {
   // Keep student in list but could add visual indicator
   console.log('Student disconnected:', data.studentId);
+}
+
+function handleStudentKicked(data) {
+  students = students.filter(s => s.id !== data.studentId);
+  if (selectedStudent && selectedStudent.id === data.studentId) {
+    selectedStudent = null;
+    document.getElementById('no-selection').style.display = 'block';
+    document.getElementById('student-controls').style.display = 'none';
+  }
+  updateStudentList();
+  skylineRenderer.setStudents(students, totalLevels);
+}
+
+function kickStudent() {
+  if (!selectedStudent) return;
+  if (!confirm(`Remove ${selectedStudent.name} from the room?`)) return;
+  sendMessage({
+    type: 'kick_student',
+    data: { studentId: selectedStudent.id }
+  });
 }
 
 function updateStudentList() {

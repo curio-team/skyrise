@@ -28,6 +28,9 @@ export function handleMessage(ws: WebSocket, message: string): void {
       case 'complete_level':
         handleCompleteLevel(ws, parsedMessage.data);
         break;
+      case 'kick_student':
+        handleKickStudent(ws, parsedMessage.data);
+        break;
       case 'submit_answer':
         handleSubmitAnswer(ws, parsedMessage.data);
         break;
@@ -279,6 +282,70 @@ function handleButtonClicked(ws: WebSocket, data: any): void {
   }
 
   completeLevelForStudent(ws, clientInfo.roomCode, studentId, levelId);
+}
+
+function handleKickStudent(ws: WebSocket, data: any): void {
+  const clientInfo = connectionManager.getClientInfo(ws);
+  if (!clientInfo) {
+    sendError(ws, 'Client not registered');
+    return;
+  }
+
+  if (!clientInfo.isTeacher) {
+    sendError(ws, 'Only teachers can kick students');
+    return;
+  }
+
+  const studentId: number = typeof data?.studentId === 'number' ? data.studentId : parseInt(data?.studentId);
+  if (!studentId || isNaN(studentId)) {
+    sendError(ws, 'Missing or invalid studentId');
+    return;
+  }
+
+  const db = getDatabase();
+
+  try {
+    const room = db.getRoomByCode(clientInfo.roomCode);
+    if (!room) {
+      sendError(ws, 'Room not found');
+      return;
+    }
+
+    const student = db.getStudentById(studentId);
+    if (!student || student.room_id !== room.id) {
+      sendError(ws, 'Student not found in this room');
+      return;
+    }
+
+    // Notify the kicked student before removing them
+    connectionManager.sendToStudent(clientInfo.roomCode, studentId, {
+      type: 'kicked',
+      data: { message: 'You have been removed from the room by the teacher.' }
+    });
+
+    // Close the student's WebSocket connection
+    const roomClients = connectionManager.getRoomClients(clientInfo.roomCode);
+    roomClients.forEach(clientWs => {
+      const info = connectionManager.getClientInfo(clientWs);
+      if (info && info.studentId === studentId) {
+        clientWs.close(1008, 'Kicked by teacher');
+      }
+    });
+
+    // Remove student from the database
+    db.deleteStudent(studentId);
+
+    // Broadcast removal to the rest of the room
+    connectionManager.broadcastToRoom(clientInfo.roomCode, {
+      type: 'student_kicked',
+      data: { studentId }
+    });
+
+    console.log(`Student ${studentId} kicked from room ${clientInfo.roomCode}`);
+  } catch (error) {
+    console.error('Error kicking student:', error);
+    sendError(ws, 'Failed to kick student');
+  }
 }
 
 function handleRequestRoomState(ws: WebSocket): void {

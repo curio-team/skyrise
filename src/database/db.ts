@@ -199,6 +199,11 @@ class DatabaseService {
     return stmt.all(studentId) as InventoryItem[];
   }
 
+  deleteStudent(studentId: number): void {
+    const stmt = this.db.prepare('DELETE FROM students WHERE id = ?');
+    stmt.run(studentId);
+  }
+
   // Combined operations
   getStudentWithProgress(studentId: number): StudentWithProgress | undefined {
     const student = this.getStudentById(studentId);

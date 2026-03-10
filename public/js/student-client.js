@@ -143,6 +143,9 @@ function handleMessage(message) {
     case 'student_disconnected':
       handleStudentDisconnected(message.data);
       break;
+    case 'kicked':
+      handleKicked(message.data);
+      break;
     case 'error':
       showError(message.data.message);
       break;
@@ -180,6 +183,26 @@ function handleStudentJoined(data) {
 function handleStudentDisconnected(data) {
   allStudents = allStudents.filter(s => s.id !== data.studentId);
   updatePeerCount();
+}
+
+function handleKicked(data) {
+  // Stop reconnection attempts
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+  if (ws) {
+    ws.onclose = null;
+    ws.onerror = null;
+    ws.close();
+    ws = null;
+  }
+  clearSession();
+
+  // Return to login
+  document.getElementById('student-container').style.display = 'none';
+  document.getElementById('login-container').style.display = 'block';
+  showError(data?.message || 'You have been removed from the room.');
 }
 
 function handleLevelCompleted(data) {
