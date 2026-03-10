@@ -223,7 +223,14 @@ function handleSubmitAnswer(ws: WebSocket, data: any): void {
     return;
   }
 
-  const result = handler.validate(data?.submission ?? {}, level.handlerConfig ?? {});
+  const db = getDatabase();
+  const room = db.getRoomByCode(clientInfo.roomCode);
+  const playerNames = room
+    ? db.getStudentsByRoom(room.id).map((s) => s.name)
+    : [];
+  const context = { playerNames };
+
+  const result = handler.validate(data?.submission ?? {}, level.handlerConfig ?? {}, context);
   if (!result.success) {
     connectionManager.sendToClient(ws, {
       type: 'answer_rejected',

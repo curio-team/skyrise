@@ -3,6 +3,12 @@ export interface LevelHandlerResult {
   message?: string;
 }
 
+/** Runtime context injected by the websocket layer during validation. */
+export interface ValidationContext {
+  /** Display names of all students currently in the room. */
+  playerNames: string[];
+}
+
 /**
  * Base interface for all level handlers.
  *
@@ -21,7 +27,7 @@ export interface LevelHandler<TConfig = unknown, TSubmission = unknown> {
    * Server-side validation of the student's submission.
    * Called by the websocket message handler before marking a level complete.
    */
-  validate(submission: TSubmission, config: TConfig): LevelHandlerResult;
+  validate(submission: TSubmission, config: TConfig, context?: ValidationContext): LevelHandlerResult;
 
   /**
    * Returns the subset of config that is safe to send to the client.

@@ -29,59 +29,60 @@
   },
   {
     "id": 3,
-    "type": "logic_input",
+    "type": "open_input",
     "title": "Wie speelt er mee?",
-    "description": "Verzamel de namen van 10 andere spelers die nu mee doen! Scheid de namen met komma's.",
+    "description": "Verzamel de namen van 5 andere spelers die nu mee doen! Scheid de namen met komma's.",
     "rewards": [
       "blueprint_scroll",
       "creativity_badge"
     ],
     "handlerConfig": {
-      "prompt": "Voer de namen van 10 andere spelers in, gescheiden door komma's.",
+      "prompt": "Voer de namen van 5 andere spelers in, gescheiden door komma's.",
       "placeholder": "Speler1, Speler2, Speler3, ...",
       "validation": {
         "type": "logic",
-        "expression": "<somehow get all player names in the room and check if at least 10 are included in the input>"
+        "expression": "playerNames.filter(n => answer.split(',').map(s => s.trim().toLowerCase()).includes(n.toLowerCase())).length >= 5"
       }
     }
   },
   {
     "id": 4,
-    "type": "static",
-    "title": "Collaboration Challenge",
-    "description": "Work together with your classmates on a group project.",
+    "type": "click_button",
+    "title": "De knop verstopt zich!",
+    "description": "Je dacht dat level 2 lastig was? Deze knop heeft trucjes geleerd van zijn grote broer. Vang hem als je kunt!",
     "rewards": [
       "team_trophy",
       "silver_star"
-    ]
+    ],
+    "handlerConfig": {
+      "buttonLabel": "Pak me dan!",
+      "behavior": "dodge",
+      "injectScript": "/* cannot use tab to select it: */(function(){var btn=document.getElementById('level-action-btn');if(btn)btn.setAttribute('tabindex','-1');})()"
+    }
   },
   {
     "id": 5,
     "type": "open_input",
-    "title": "Problem Solving",
-    "description": "Identify a challenge in your school or community and propose a solution.",
+    "title": "De geheime code",
+    "description": "Ergens in DevCity is een geheime code verborgen. Vraag het aan een mede-speler, want zij weten het antwoord... misschien. De code bestaat uit een kleur, een dier en een getal.",
     "rewards": [
       "lightbulb_badge",
       "innovator_medal"
     ],
     "handlerConfig": {
-      "prompt": "Describe a problem you've noticed and your plan to solve it. Include at least 3 specific steps.",
-      "placeholder": "The problem I noticed is... My first step would be...",
+      "prompt": "Wat is de geheime code? Schrijf een kleur, een dier én een getal op.",
+      "placeholder": "Blauw, olifant, 42...",
       "validation": {
-        "type": "contains_all",
-        "keywords": [
-          "step",
-          "problem",
-          "solution"
-        ]
+        "type": "min_length",
+        "length": 5
       }
     }
   },
   {
     "id": 6,
     "type": "static",
-    "title": "Leadership Skills",
-    "description": "Take the lead on organizing an activity or helping others.",
+    "title": "Bouw je gebouw!",
+    "description": "Werk samen met twee andere spelers om een imaginair gebouw te ontwerpen. Vertel de leraar welk gebouw jullie hebben bedacht en wie je teamgenoten waren om dit level te voltooien!",
     "rewards": [
       "leader_crown",
       "helper_heart"
@@ -90,19 +91,19 @@
   {
     "id": 7,
     "type": "multiple_choice",
-    "title": "Research Master",
-    "description": "Conduct in-depth research on a topic that interests you.",
+    "title": "DevCity Trivia",
+    "description": "Alleen echte DevCity-bewoners weten dit! Bewijs dat jij de stad door en door kent.",
     "rewards": [
       "scholar_scroll",
       "gold_star"
     ],
     "handlerConfig": {
-      "question": "Which scientist is credited with the theory of general relativity?",
+      "question": "Hoeveel bytes zitten er in één kilobyte (in de informatica)?",
       "choices": [
-        "Isaac Newton",
-        "Nikola Tesla",
-        "Albert Einstein",
-        "Marie Curie"
+        "100",
+        "1000",
+        "1024",
+        "2048"
       ],
       "correctIndex": 2
     }
@@ -110,21 +111,20 @@
   {
     "id": 8,
     "type": "open_input",
-    "title": "Communication Excellence",
-    "description": "Demonstrate clear and effective communication skills.",
+    "title": "Jouw superheldenkracht",
+    "description": "Elke DevCity-held heeft een speciale kracht. Wat is jouw superpower en hoe gebruik je die om DevCity te verbeteren? Wees creatief!",
     "rewards": [
       "eloquence_badge",
       "communication_ribbon"
     ],
     "handlerConfig": {
-      "prompt": "Write your persuasive letter to the principal here.",
-      "placeholder": "Dear Principal, I am writing to suggest...",
+      "prompt": "Beschrijf jouw superheldenkracht en hoe je DevCity daarmee verbetert.",
+      "placeholder": "Mijn superpower is... Hiermee kan ik DevCity verbeteren door...",
       "validation": {
         "type": "contains_all",
         "keywords": [
-          "dear",
-          "because",
-          "would"
+          "superpower",
+          "devcity"
         ]
       }
     }
@@ -132,22 +132,22 @@
   {
     "id": 9,
     "type": "click_button",
-    "title": "Innovation Project",
-    "description": "Create something new that could benefit your community.",
+    "title": "De finale knop",
+    "description": "Dit is de allerlaatste knop van DevCity. Hij is snel, hij is wild, maar jij bent sneller. Vang hem en claim je plek als DevCity-legende!",
     "rewards": [
       "inventor_wrench",
       "innovation_trophy"
     ],
     "handlerConfig": {
-      "buttonLabel": "Submit Innovation",
+      "buttonLabel": "Ik ben een legende!",
       "injectScript": "(function(){var btn=document.getElementById('level-action-btn');if(!btn)return;btn.addEventListener('mouseover',function move(){var x=Math.random()*(window.innerWidth-140);var y=Math.random()*(window.innerHeight-60);btn.style.position='fixed';btn.style.left=x+'px';btn.style.top=y+'px';});})();"
     }
   },
   {
     "id": 10,
     "type": "static",
-    "title": "Master Builder",
-    "description": "Complete the ultimate challenge and become a Master Builder!",
+    "title": "DevCity Meester-Bouwer!",
+    "description": "Gefeliciteerd! Je hebt alle uitdagingen van DevCity doorstaan, nieuwe vrienden gemaakt, codes gekraakt en knoppen gevangen. DevCity kroont jou tot Meester-Bouwer! Laat de leraar weten dat je klaar bent en ontvang je legendarische beloningen.",
     "rewards": [
       "master_badge",
       "golden_trophy",
