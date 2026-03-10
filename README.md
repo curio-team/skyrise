@@ -75,6 +75,103 @@ npm run dev
 6. Wait for your teacher to mark it complete
 7. Watch your building grow and collect rewards!
 
+## Production Hosting
+
+### Prerequisites
+
+Ensure Node.js is installed on your Linux server:
+
+```bash
+node -v   # should be v18 or later
+npm -v
+```
+
+### Build for Production
+
+```bash
+npm install
+npm run build
+```
+
+### Keeping the Server Running with PM2
+
+If you prefer a Node.js-native process manager:
+
+```bash
+npm install -g pm2
+pm2 start dist/server.js --name skyrise
+pm2 save                  # persist process list across reboots
+pm2 startup               # follow the printed instructions to register PM2 with systemd
+```
+
+### Reverse Proxy with Apache
+
+If Apache is already running on the server, use it as a reverse proxy — no need for a second web server.
+
+Enable the required modules:
+
+```bash
+sudo a2enmod proxy proxy_http proxy_wstunnel rewrite headers
+sudo systemctl restart apache2
+```
+
+Create a virtual host config:
+
+```bash
+sudo nano /etc/apache2/sites-available/skyrise.conf
+```
+
+```apache
+<VirtualHost *:80>
+    ServerName yourdomain.com
+
+    # Proxy WebSocket connections (must come before the general proxy rule)
+    RewriteEngine On
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/?(.*) ws://localhost:3000/$1 [P,L]
+
+    # Proxy all other requests
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+
+    RequestHeader set X-Forwarded-Proto "http"
+</VirtualHost>
+```
+
+Enable the site and reload Apache:
+
+```bash
+sudo a2ensite skyrise
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+> **WebSockets**: The `RewriteRule` with `proxy_wstunnel` is essential — without it the real-time skyline updates will not work through the proxy.
+
+### TLS / HTTPS
+
+Use [Certbot](https://certbot.eff.org/) to obtain a free Let's Encrypt certificate and have it automatically update the Apache config:
+
+```bash
+sudo certbot --apache -d yourdomain.com
+```
+
+Certbot installs a cron job / systemd timer to auto-renew the certificate before it expires. After running it, update the `RequestHeader` line in the SSL virtual host Certbot creates to read `"https"` instead of `"http"`.
+
+### Firewall
+
+Allow only the ports you need:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 'Apache Full'   # ports 80 and 443
+sudo ufw enable
+```
+
+---
+
 ## Configuration
 
 ### Level Configuration
