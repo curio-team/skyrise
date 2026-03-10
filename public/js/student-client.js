@@ -165,13 +165,7 @@ function updateStudentView() {
   const currentLevel = studentData.current_level - 1;
   document.getElementById('current-level').textContent = currentLevel;
   
-  // Update building height
-  const buildingBar = document.getElementById('my-building-bar');
-  const maxHeight = 200;
-  const height = (currentLevel / totalLevels) * maxHeight;
-  buildingBar.style.height = `${height}px`;
-  buildingBar.style.background = studentData.color;
-  document.getElementById('building-height-text').textContent = currentLevel;
+  // Building visualization removed from student view
   
   // Update level info
   const level = levels.find(l => l.id === studentData.current_level);

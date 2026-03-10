@@ -107,26 +107,36 @@ class SkylineRenderer {
       const levelText = student.current_level - 1 || '0';
       this.ctx.fillText(levelText, x + buildingWidth / 2, y + Math.max(height / 2, 15));
 
-      // Student name below building
-      this.ctx.fillStyle = '#2d3436';
-      this.ctx.font = 'bold 12px sans-serif';
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'top';
-      
-      // Truncate name if too long
-      let displayName = student.name;
-      if (displayName.length > 10) {
-        displayName = displayName.substring(0, 8) + '...';
-      }
-      this.ctx.fillText(displayName, x + buildingWidth / 2, this.height - groundHeight + 10);
+      // Student name label above building
+      const nameLabel = student.name;
+      this.ctx.font = 'bold 13px sans-serif';
+      const nameWidth = this.ctx.measureText(nameLabel).width;
+      const labelPad = 8;
+      const labelW = nameWidth + labelPad * 2;
+      const labelH = 22;
+      const labelX = x + buildingWidth / 2 - labelW / 2;
+      const labelY = y - labelH - 6;
 
-      // Level below name
-      this.ctx.font = '10px sans-serif';
-      this.ctx.fillStyle = '#636e72';
+      // Label background
+      this.ctx.fillStyle = isSelected ? '#FFD700' : 'rgba(255,255,255,0.92)';
+      this.ctx.beginPath();
+      this.ctx.roundRect(labelX, labelY, labelW, labelH, 4);
+      this.ctx.fill();
+
+      // Label text
+      this.ctx.fillStyle = '#2d3436';
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(nameLabel, x + buildingWidth / 2, labelY + labelH / 2);
+
+      // Level below building
+      this.ctx.font = 'bold 11px sans-serif';
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.textBaseline = 'top';
       this.ctx.fillText(
-        `Level ${student.current_level - 1}/${this.totalLevels}`,
+        `Lvl ${student.current_level - 1}`,
         x + buildingWidth / 2,
-        this.height - groundHeight + 25
+        this.height - groundHeight + 8
       );
     });
 
