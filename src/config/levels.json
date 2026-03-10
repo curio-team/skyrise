@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "title": "Introduction to the City",
+    "description": "Welcome to our city! Your first task is to introduce yourself to your classmates and learn about the project goals.",
+    "assignmentText": "Create a short presentation about yourself and share it with the class. Include your name, favorite hobby, and what you're most excited to learn this year.",
+    "rewards": ["bronze_medal", "welcome_badge"]
+  },
+  {
+    "id": 2,
+    "title": "Understanding Our Community",
+    "description": "Learn about the different roles in a community and what makes a city function.",
+    "assignmentText": "Research three different community roles (like teacher, firefighter, doctor, etc.) and write a paragraph about each one explaining what they do and why they're important.",
+    "rewards": ["book_icon", "community_star"]
+  },
+  {
+    "id": 3,
+    "title": "Creative Planning",
+    "description": "Think about what makes a great city and plan your contribution.",
+    "assignmentText": "Draw or design your ideal neighborhood. Include at least 5 different buildings or spaces and label what each one is used for. Be creative!",
+    "rewards": ["blueprint_scroll", "creativity_badge"]
+  },
+  {
+    "id": 4,
+    "title": "Collaboration Challenge",
+    "description": "Work together with your classmates on a group project.",
+    "assignmentText": "Form a team of 3-4 students and create a poster about why teamwork is important. Present your poster to the class and explain what you learned.",
+    "rewards": ["team_trophy", "silver_star"]
+  },
+  {
+    "id": 5,
+    "title": "Problem Solving",
+    "description": "Identify a challenge in your school or community and propose a solution.",
+    "assignmentText": "Think of one problem you've noticed at school or in your neighborhood. Write a detailed plan for how you would solve it, including at least 3 specific steps.",
+    "rewards": ["lightbulb_badge", "innovator_medal"]
+  },
+  {
+    "id": 6,
+    "title": "Leadership Skills",
+    "description": "Take the lead on organizing an activity or helping others.",
+    "assignmentText": "Organize and lead a study group session for your peers on a topic of your choice. Help at least 3 classmates understand something new.",
+    "rewards": ["leader_crown", "helper_heart"]
+  },
+  {
+    "id": 7,
+    "title": "Research Master",
+    "description": "Conduct in-depth research on a topic that interests you.",
+    "assignmentText": "Choose a historical event or scientific discovery that fascinates you. Research it thoroughly and create a 5-minute presentation with at least 3 interesting facts you learned.",
+    "rewards": ["scholar_scroll", "gold_star"]
+  },
+  {
+    "id": 8,
+    "title": "Communication Excellence",
+    "description": "Demonstrate clear and effective communication skills.",
+    "assignmentText": "Write a persuasive letter to the principal suggesting one improvement for the school. Use proper letter format and include at least 3 supporting reasons for your suggestion.",
+    "rewards": ["eloquence_badge", "communication_ribbon"]
+  },
+  {
+    "id": 9,
+    "title": "Innovation Project",
+    "description": "Create something new that could benefit your community.",
+    "assignmentText": "Design an invention or app that would make life easier for people in your community. Draw it, explain how it works, and describe who it would help.",
+    "rewards": ["inventor_wrench", "innovation_trophy"]
+  },
+  {
+    "id": 10,
+    "title": "Master Builder",
+    "description": "Complete the ultimate challenge and become a Master Builder!",
+    "assignmentText": "Create a comprehensive portfolio showcasing your best work from all previous levels. Include reflections on what you learned and how you've grown. Present it to the class.",
+    "rewards": ["master_badge", "golden_trophy", "architect_crown", "completion_certificate"]
+  }
+]

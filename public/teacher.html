@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard - Skyrise</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container" id="login-container">
+    <div class="form-container">
+      <h1>🏙️ Skyrise - Teacher Dashboard</h1>
+      <div id="error-message" class="error-message" style="display: none;"></div>
+      <button class="btn" onclick="createRoom()">Create New Room</button>
+    </div>
+  </div>
+
+  <div class="container" id="dashboard-container" style="display: none;">
+    <div class="header">
+      <h1>
+        <span id="connection-indicator" class="connection-status connecting"></span>
+        🏙️ Skyrise
+      </h1>
+      <div class="room-code" id="room-code-display"></div>
+    </div>
+
+    <div class="main-content">
+      <div class="skyline-section">
+        <h2>City Skyline</h2>
+        <canvas id="skyline-canvas"></canvas>
+      </div>
+
+      <div class="sidebar">
+        <div class="students-panel">
+          <h3>Students (<span id="student-count">0</span>)</h3>
+          <div class="student-list" id="student-list">
+            <p style="color: #999; text-align: center; padding: 20px;">No students yet</p>
+          </div>
+        </div>
+
+        <div class="controls-panel">
+          <h3>Controls</h3>
+          <div id="no-selection" style="color: #999; text-align: center; padding: 20px;">
+            Select a student
+          </div>
+          <div id="student-controls" style="display: none;">
+            <div style="margin-bottom: 15px;">
+              <strong id="selected-student-name"></strong>
+              <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                Level: <span id="selected-student-level"></span>
+              </div>
+            </div>
+            <button class="btn btn-secondary" id="complete-level-btn" onclick="completeLevel()">
+              Complete Current Level
+            </button>
+            <div id="selected-student-inventory" class="inventory-display" style="display: none;">
+              <div class="inventory-title">Inventory</div>
+              <div class="inventory-items" id="selected-inventory-items"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/skyline-renderer.js"></script>
+  <script src="/js/teacher-client.js"></script>
+</body>
+</html>
