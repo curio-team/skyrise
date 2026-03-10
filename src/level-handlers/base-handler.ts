@@ -29,6 +29,9 @@ export interface LevelDefinition {
   rewards: string[];
   handlerConfig?: Record<string, unknown>;
   validate?(submission: unknown, context: ServerContext): LevelHandlerResult;
+  /** Returns HTML string rendered into the student UI for this level.
+   *  Receives the already-sanitised client config (no secret fields). */
+  renderHtml?(clientConfig: Record<string, unknown>): string;
 }
 
 /**

@@ -293,7 +293,7 @@ function renderLevelInteraction(level) {
   const container = document.getElementById('level-interaction');
   const staticHint = document.getElementById('static-hint');
 
-  if (!level || level.type === 'static' || !level.type) {
+  if (!level || !level.html) {
     container.style.display = 'none';
     container.innerHTML = '';
     staticHint.style.display = 'block';
@@ -302,167 +302,107 @@ function renderLevelInteraction(level) {
 
   staticHint.style.display = 'none';
   container.style.display = 'block';
+  container.innerHTML = level.html;
 
-  switch (level.type) {
-    case 'multiple_choice':
-      container.innerHTML = renderMultipleChoice(level);
-      break;
-    case 'open_input':
-      container.innerHTML = renderOpenInput(level);
-      break;
-    case 'sync_hold':
-      container.innerHTML = renderSyncHold(level);
-      setupSyncHoldButton(level);
-      break;
-    case 'click_button':
-      container.innerHTML = renderClickButton(level);
-      // Apply named behavior first, then fall back to legacy injectScript
-      if (level.handlerConfig) {
-        const behaviorName = level.handlerConfig.behavior || 'none';
-        const behaviorFn = BUTTON_BEHAVIORS[behaviorName];
-        if (behaviorFn) {
-          const btn = document.getElementById('level-action-btn');
-          if (btn) behaviorFn(btn);
-        }
-        if (level.handlerConfig.injectScript) {
-          try {
-            const fn = new Function(level.handlerConfig.injectScript);
-            fn();
-          } catch (e) {
-            console.warn('injectScript error:', e);
-          }
-        }
-      }
-      break;
-    default:
-      container.innerHTML = '';
-      staticHint.style.display = 'block';
+  // Initialise the freshly injected Alpine.js components
+  if (typeof Alpine !== 'undefined') {
+    Alpine.initTree(container);
   }
-}
-
-function renderMultipleChoice(level) {
-  const cfg = level.handlerConfig || {};
-  const choices = Array.isArray(cfg.choices) ? cfg.choices : [];
-  const question = escapeHtml(cfg.question || 'Choose the correct answer:');
-
-  const choicesHtml = choices.map((choice, i) => `
-    <label class="mc-choice">
-      <input type="radio" name="mc-choice-${level.id}" value="${i}">
-      ${escapeHtml(choice)}
-    </label>
-  `).join('');
-
-  return `
-    <div class="level-interaction-panel">
-      <div class="mc-question">${question}</div>
-      <div class="mc-choices">${choicesHtml}</div>
-      <div id="interaction-feedback" class="answer-feedback"></div>
-      <button class="btn" style="margin-top:16px;" onclick="submitMultipleChoice(${level.id})">Submit Answer</button>
-    </div>
-  `;
-}
-
-function renderOpenInput(level) {
-  const cfg = level.handlerConfig || {};
-  const prompt = escapeHtml(cfg.prompt || 'Enter your answer:');
-  const placeholder = escapeHtml(cfg.placeholder || '');
-
-  return `
-    <div class="level-interaction-panel">
-      <div class="open-input-prompt">${prompt}</div>
-      <textarea id="open-input-answer" class="open-input-field" placeholder="${placeholder}"></textarea>
-      <div id="interaction-feedback" class="answer-feedback"></div>
-      <button class="btn" onclick="submitOpenInput(${level.id})">Submit Answer</button>
-    </div>
-  `;
-}
-
-function renderSyncHold(level) {
-  const cfg = level.handlerConfig || {};
-  const label = escapeHtml(cfg.buttonLabel || 'Houd vast!');
-  const duration = cfg.holdDurationMs ?? 1000;
-
-  return `
-    <div class="level-interaction-panel">
-      <p class="open-input-prompt">Hou samen met <strong>alle spelers</strong> de knop ingedrukt voor ${(duration / 1000).toFixed(1)} seconden!</p>
-      <div id="hold-status" class="answer-feedback" style="margin-bottom:12px;"></div>
-      <div class="click-button-wrapper">
-        <button id="level-action-btn" class="btn btn-secondary" style="width:auto; padding: 18px 40px; font-size:1.2em; user-select:none;"
-          data-level-id="${level.id}">
-          ${label}
-        </button>
-      </div>
-      <div id="interaction-feedback" class="answer-feedback"></div>
-    </div>
-  `;
-}
-
-function setupSyncHoldButton(level) {
-  const btn = document.getElementById('level-action-btn');
-  if (!btn) return;
-  const levelId = level.id;
-  let holding = false;
-
-  function startHold(e) {
-    e.preventDefault();
-    if (holding) return;
-    holding = true;
-    btn.classList.add('btn-holding');
-    btn.style.transform = 'scale(0.95)';
-    sendMessage({ type: 'hold_start', data: { levelId } });
-  }
-
-  function endHold() {
-    if (!holding) return;
-    holding = false;
-    btn.classList.remove('btn-holding');
-    btn.style.transform = '';
-    sendMessage({ type: 'hold_end', data: { levelId } });
-  }
-
-  btn.addEventListener('mousedown', startHold);
-  btn.addEventListener('touchstart', startHold, { passive: false });
-  window.addEventListener('mouseup', endHold);
-  window.addEventListener('touchend', endHold);
-  // Release if focus is lost (e.g. alt-tab)
-  window.addEventListener('blur', endHold);
-}
-
-function handleHoldStatus(data) {
-  const el = document.getElementById('hold-status');
-  if (!el) return;
-  const { holdersCount, requiredCount } = data;
-  if (requiredCount === 0) {
-    el.textContent = '';
-    return;
-  }
-  el.textContent = `${holdersCount} / ${requiredCount} spelers houden de knop ingedrukt`;
-  el.className = 'answer-feedback ' + (holdersCount >= requiredCount ? 'success' : '');
-}
-
-function renderClickButton(level) {
-  const cfg = level.handlerConfig || {};
-  const label = escapeHtml(cfg.buttonLabel || 'Click Me!');
-
-  return `
-    <div class="level-interaction-panel">
-      <div class="click-button-wrapper">
-        <button id="level-action-btn" class="btn btn-secondary" style="width:auto; padding: 14px 32px; font-size:1.1em;"
-          onclick="submitButtonClick(${level.id})">
-          ${label}
-        </button>
-      </div>
-      <div id="interaction-feedback" class="answer-feedback"></div>
-    </div>
-  `;
 }
 
 // ---------------------------------------------------------------------------
-// Named button behaviors registry
-//
-// Each key is a behavior name (matches handlerConfig.behavior in levels.ts).
-// The value is a function that receives the button element and sets up the trick.
-// Register new behaviors here to make them available to any click_button level.
+// Alpine.js component factories (consumed via x-data in level HTML)
+// ---------------------------------------------------------------------------
+
+/**
+ * Used by click_button levels.
+ * Looks up the level's handlerConfig to apply named behaviors and injectScript.
+ */
+function clickButtonLevel(levelId) {
+  const level = levels.find(l => l.id === levelId);
+  const cfg = level?.handlerConfig || {};
+  return {
+    init() {
+      const btn = this.$el.querySelector('#level-action-btn');
+      if (!btn) return;
+      const behaviorFn = BUTTON_BEHAVIORS[cfg.behavior || 'none'];
+      if (behaviorFn) behaviorFn(btn);
+      if (cfg.injectScript) {
+        try { new Function(cfg.injectScript)(); } catch (e) { console.warn('injectScript error:', e); }
+      }
+    },
+    submit() {
+      sendMessage({ type: 'button_clicked', data: { levelId } });
+    },
+  };
+}
+
+/** Used by open_input levels. */
+function openInputLevel(levelId) {
+  return {
+    answer: '',
+    submit() {
+      if (!this.answer.trim()) {
+        showInteractionFeedback('Please write your answer first.', false);
+        return;
+      }
+      sendMessage({ type: 'submit_answer', data: { levelId, submission: { answer: this.answer } } });
+    },
+  };
+}
+
+/** Used by multiple_choice levels. */
+function multipleChoiceLevel(levelId) {
+  return {
+    selected: null,
+    submit() {
+      if (this.selected === null) {
+        showInteractionFeedback('Please select an answer first.', false);
+        return;
+      }
+      sendMessage({ type: 'submit_answer', data: { levelId, submission: { selectedIndex: parseInt(this.selected) } } });
+    },
+  };
+}
+
+/** Used by sync_hold levels. */
+function syncHoldLevel(levelId) {
+  return {
+    holding: false,
+    _cleanup: null,
+    init() {
+      const endHold = () => this.endHold();
+      window.addEventListener('mouseup', endHold);
+      window.addEventListener('touchend', endHold);
+      window.addEventListener('blur', endHold);
+      this._cleanup = endHold;
+    },
+    destroy() {
+      if (this._cleanup) {
+        window.removeEventListener('mouseup', this._cleanup);
+        window.removeEventListener('touchend', this._cleanup);
+        window.removeEventListener('blur', this._cleanup);
+      }
+    },
+    startHold() {
+      if (this.holding) return;
+      this.holding = true;
+      document.getElementById('level-action-btn')?.classList.add('btn-holding');
+      document.getElementById('level-action-btn').style.transform = 'scale(0.95)';
+      sendMessage({ type: 'hold_start', data: { levelId } });
+    },
+    endHold() {
+      if (!this.holding) return;
+      this.holding = false;
+      const btn = document.getElementById('level-action-btn');
+      if (btn) { btn.classList.remove('btn-holding'); btn.style.transform = ''; }
+      sendMessage({ type: 'hold_end', data: { levelId } });
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Named button behaviors registry (used by clickButtonLevel via handlerConfig.behavior)
 // ---------------------------------------------------------------------------
 
 const BUTTON_BEHAVIORS = {
@@ -519,32 +459,21 @@ const BUTTON_BEHAVIORS = {
   },
 };
 
+function handleHoldStatus(data) {
+  const el = document.getElementById('hold-status');
+  if (!el) return;
+  const { holdersCount, requiredCount } = data;
+  if (requiredCount === 0) {
+    el.textContent = '';
+    return;
+  }
+  el.textContent = `${holdersCount} / ${requiredCount} spelers houden de knop ingedrukt`;
+  el.className = 'answer-feedback ' + (holdersCount >= requiredCount ? 'success' : '');
+}
+
 // ---------------------------------------------------------------------------
 // Submission helpers
 // ---------------------------------------------------------------------------
-
-function submitMultipleChoice(levelId) {
-  const selected = document.querySelector(`input[name="mc-choice-${levelId}"]:checked`);
-  if (!selected) {
-    showInteractionFeedback('Please select an answer first.', false);
-    return;
-  }
-  sendMessage({ type: 'submit_answer', data: { levelId, submission: { selectedIndex: parseInt(selected.value) } } });
-}
-
-function submitOpenInput(levelId) {
-  const textarea = document.getElementById('open-input-answer');
-  const answer = textarea ? textarea.value.trim() : '';
-  if (!answer) {
-    showInteractionFeedback('Please write your answer first.', false);
-    return;
-  }
-  sendMessage({ type: 'submit_answer', data: { levelId, submission: { answer } } });
-}
-
-function submitButtonClick(levelId) {
-  sendMessage({ type: 'button_clicked', data: { levelId } });
-}
 
 function showInteractionFeedback(message, success) {
   const el = document.getElementById('interaction-feedback');

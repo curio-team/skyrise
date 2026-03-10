@@ -1,5 +1,14 @@
 import type { LevelDefinition, ServerContext, LevelHandlerResult } from '../level-handlers/base-handler';
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const levels: LevelDefinition[] = [
   {
     id: 1,
@@ -12,6 +21,21 @@ const levels: LevelDefinition[] = [
       buttonLabel: 'Ik ben klaar!',
       behavior: 'none',
     },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const label = escapeHtml(String(cfg.buttonLabel ?? 'Click Me!'));
+      return `
+        <div class="level-interaction-panel" x-data="clickButtonLevel(${this.id})">
+          <div class="click-button-wrapper">
+            <button id="level-action-btn" class="btn btn-secondary"
+                    style="width:auto; padding: 14px 32px; font-size:1.1em;"
+                    @click="submit()">
+              ${label}
+            </button>
+          </div>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+        </div>
+      `;
+    },
   },
   {
     id: 2,
@@ -23,6 +47,21 @@ const levels: LevelDefinition[] = [
     handlerConfig: {
       buttonLabel: 'Easy? Think again!',
       behavior: 'dodge',
+    },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const label = escapeHtml(String(cfg.buttonLabel ?? 'Click Me!'));
+      return `
+        <div class="level-interaction-panel" x-data="clickButtonLevel(${this.id})">
+          <div class="click-button-wrapper">
+            <button id="level-action-btn" class="btn btn-secondary"
+                    style="width:auto; padding: 14px 32px; font-size:1.1em;"
+                    @click="submit()">
+              ${label}
+            </button>
+          </div>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+        </div>
+      `;
     },
   },
   {
@@ -56,6 +95,19 @@ const levels: LevelDefinition[] = [
         message: `Je hebt ${matched.length} van de 5 benodigde medespelers gevonden. Probeer opnieuw!`,
       };
     },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const prompt = escapeHtml(String(cfg.prompt ?? 'Enter your answer:'));
+      const placeholder = escapeHtml(String(cfg.placeholder ?? ''));
+      return `
+        <div class="level-interaction-panel" x-data="openInputLevel(${this.id})">
+          <div class="open-input-prompt">${prompt}</div>
+          <textarea id="open-input-answer" class="open-input-field"
+                    placeholder="${placeholder}" x-model="answer"></textarea>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+          <button class="btn" @click="submit()">Submit Answer</button>
+        </div>
+      `;
+    },
   },
   {
     id: 4,
@@ -67,6 +119,25 @@ const levels: LevelDefinition[] = [
     handlerConfig: {
       buttonLabel: 'Houd vast!',
       holdDurationMs: 2000,
+    },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const label = escapeHtml(String(cfg.buttonLabel ?? 'Houd vast!'));
+      const duration = Number(cfg.holdDurationMs ?? 1000);
+      return `
+        <div class="level-interaction-panel" x-data="syncHoldLevel(${this.id})">
+          <p class="open-input-prompt">Hou samen met <strong>alle spelers</strong> de knop ingedrukt voor ${(duration / 1000).toFixed(1)} seconden!</p>
+          <div id="hold-status" class="answer-feedback" style="margin-bottom:12px;"></div>
+          <div class="click-button-wrapper">
+            <button id="level-action-btn" class="btn btn-secondary"
+                    style="width:auto; padding: 18px 40px; font-size:1.2em; user-select:none;"
+                    @mousedown.prevent="startHold()"
+                    @touchstart.prevent="startHold()">
+              ${label}
+            </button>
+          </div>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+        </div>
+      `;
     },
   },
   {
@@ -82,6 +153,21 @@ const levels: LevelDefinition[] = [
       injectScript:
         "/* cannot use tab to select it: */(function(){var btn=document.getElementById('level-action-btn');if(btn)btn.setAttribute('tabindex','-1');})()",
     },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const label = escapeHtml(String(cfg.buttonLabel ?? 'Click Me!'));
+      return `
+        <div class="level-interaction-panel" x-data="clickButtonLevel(${this.id})">
+          <div class="click-button-wrapper">
+            <button id="level-action-btn" class="btn btn-secondary"
+                    style="width:auto; padding: 14px 32px; font-size:1.1em;"
+                    @click="submit()">
+              ${label}
+            </button>
+          </div>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+        </div>
+      `;
+    },
   },
   {
     id: 6,
@@ -94,6 +180,19 @@ const levels: LevelDefinition[] = [
       prompt: 'Wat is de geheime code? Schrijf een kleur, een dier én een getal op.',
       placeholder: 'Blauw, olifant, 42...',
       validation: { type: 'min_length', length: 5 },
+    },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const prompt = escapeHtml(String(cfg.prompt ?? 'Enter your answer:'));
+      const placeholder = escapeHtml(String(cfg.placeholder ?? ''));
+      return `
+        <div class="level-interaction-panel" x-data="openInputLevel(${this.id})">
+          <div class="open-input-prompt">${prompt}</div>
+          <textarea id="open-input-answer" class="open-input-field"
+                    placeholder="${placeholder}" x-model="answer"></textarea>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+          <button class="btn" @click="submit()">Submit Answer</button>
+        </div>
+      `;
     },
   },
   {
@@ -115,6 +214,24 @@ const levels: LevelDefinition[] = [
       choices: ['100', '1000', '1024', '2048'],
       correctIndex: 2,
     },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const question = escapeHtml(String(cfg.question ?? 'Choose the correct answer:'));
+      const choices = Array.isArray(cfg.choices) ? cfg.choices : [];
+      const choicesHtml = (choices as unknown[]).map((c, i) => `
+        <label class="mc-choice">
+          <input type="radio" name="mc-choice-${this.id}" x-model="selected" value="${i}">
+          ${escapeHtml(String(c))}
+        </label>
+      `).join('');
+      return `
+        <div class="level-interaction-panel" x-data="multipleChoiceLevel(${this.id})">
+          <div class="mc-question">${question}</div>
+          <div class="mc-choices">${choicesHtml}</div>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+          <button class="btn" style="margin-top:16px;" @click="submit()">Submit Answer</button>
+        </div>
+      `;
+    },
   },
   {
     id: 9,
@@ -128,6 +245,19 @@ const levels: LevelDefinition[] = [
       placeholder: 'Mijn superpower is... Hiermee kan ik DevCity verbeteren door...',
       validation: { type: 'contains_all', keywords: ['superpower', 'devcity'] },
     },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const prompt = escapeHtml(String(cfg.prompt ?? 'Enter your answer:'));
+      const placeholder = escapeHtml(String(cfg.placeholder ?? ''));
+      return `
+        <div class="level-interaction-panel" x-data="openInputLevel(${this.id})">
+          <div class="open-input-prompt">${prompt}</div>
+          <textarea id="open-input-answer" class="open-input-field"
+                    placeholder="${placeholder}" x-model="answer"></textarea>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+          <button class="btn" @click="submit()">Submit Answer</button>
+        </div>
+      `;
+    },
   },
   {
     id: 10,
@@ -140,6 +270,21 @@ const levels: LevelDefinition[] = [
       buttonLabel: 'Ik ben een legende!',
       injectScript:
         "(function(){var btn=document.getElementById('level-action-btn');if(!btn)return;btn.addEventListener('mouseover',function move(){var x=Math.random()*(window.innerWidth-140);var y=Math.random()*(window.innerHeight-60);btn.style.position='fixed';btn.style.left=x+'px';btn.style.top=y+'px';});})();",
+    },
+    renderHtml(cfg: Record<string, unknown>): string {
+      const label = escapeHtml(String(cfg.buttonLabel ?? 'Click Me!'));
+      return `
+        <div class="level-interaction-panel" x-data="clickButtonLevel(${this.id})">
+          <div class="click-button-wrapper">
+            <button id="level-action-btn" class="btn btn-secondary"
+                    style="width:auto; padding: 14px 32px; font-size:1.1em;"
+                    @click="submit()">
+              ${label}
+            </button>
+          </div>
+          <div id="interaction-feedback" class="answer-feedback"></div>
+        </div>
+      `;
     },
   },
   {

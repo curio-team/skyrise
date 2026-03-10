@@ -16,9 +16,10 @@ function sanitizeLevel(level: Level): Record<string, unknown> {
   const clientConfig = handler && level.handlerConfig
     ? handler.getClientConfig(level.handlerConfig)
     : {};
-  const { handlerConfig: _raw, ...rest } = level as unknown as Record<string, unknown>;
-  void _raw;
-  return { ...rest, handlerConfig: clientConfig };
+  const html = level.renderHtml ? level.renderHtml(clientConfig) : undefined;
+  const { handlerConfig: _raw, validate: _v, renderHtml: _r, ...rest } = level as unknown as Record<string, unknown>;
+  void _raw; void _v; void _r;
+  return { ...rest, handlerConfig: clientConfig, ...(html !== undefined ? { html } : {}) };
 }
 
 const PORT = process.env.PORT || 3000;
