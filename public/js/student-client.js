@@ -420,23 +420,11 @@ function animateLevelComplete(rewards) {
   if (rewards && rewards.length > 0) {
     const rewardText = rewards.join(', ');
     const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      z-index: 1000;
-      text-align: center;
-      min-width: 300px;
-    `;
+    notification.className = 'reward-notification';
     notification.innerHTML = `
-      <h2 style="color: #667eea; margin-bottom: 15px;">🎉 Level Complete!</h2>
-      <p style="font-size: 1.1em; margin-bottom: 10px;">You earned:</p>
-      <p style="font-weight: bold; color: #52b788;">${escapeHtml(rewardText)}</p>
+      <h2>🎉 Level Complete!</h2>
+      <p>You earned:</p>
+      <p class="reward-items">${escapeHtml(rewardText)}</p>
     `;
     document.body.appendChild(notification);
 

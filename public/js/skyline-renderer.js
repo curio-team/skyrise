@@ -81,7 +81,7 @@ class SkylineRenderer {
     const spacing = 10;
     const availableWidth = this.width - (padding * 2);
     const buildingWidth = Math.min(
-      80,
+      50,
       (availableWidth - (spacing * (this.students.length - 1))) / this.students.length
     );
     const maxBuildingHeight = this.height - groundHeight - 60;
@@ -122,14 +122,6 @@ class SkylineRenderer {
         }
       }
 
-      // Level indicator on building
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = 'bold 16px sans-serif';
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      const levelText = student.current_level - 1 || '0';
-      this.ctx.fillText(levelText, x + buildingWidth / 2, y + Math.max(height / 2, 15));
-
       // Student name label above building
       const nameLabel = student.name;
       this.ctx.font = 'bold 13px sans-serif';
@@ -162,13 +154,6 @@ class SkylineRenderer {
         this.height - groundHeight + 8
       );
     });
-
-    // Draw title
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    this.ctx.font = 'bold 24px sans-serif';
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'top';
-    this.ctx.fillText('Our City Skyline', this.width / 2, 20);
   }
 
   drawBackgroundImages(groundHeight) {

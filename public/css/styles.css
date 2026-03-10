@@ -914,6 +914,64 @@ body {
   border-color: var(--border-accent);
 }
 
+/* ── Reward Notification ── */
+.reward-notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  padding: 32px 40px;
+  box-shadow: var(--shadow), var(--shadow-accent);
+  z-index: 1000;
+  text-align: center;
+  min-width: 320px;
+  animation: reward-pop 0.25s ease;
+}
+
+.reward-notification::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  border-top: 1px solid var(--border-accent);
+  pointer-events: none;
+}
+
+@keyframes reward-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -52%) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.reward-notification h2 {
+  color: var(--accent);
+  font-size: 1.4em;
+  margin-bottom: 14px;
+  text-shadow: 0 0 16px var(--accent-glow);
+}
+
+.reward-notification p {
+  font-size: 1.05em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.reward-notification .reward-items {
+  font-weight: 700;
+  color: var(--green);
+  font-size: 1.1em;
+  text-shadow: 0 0 12px rgba(0, 232, 122, 0.35);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .main-content {

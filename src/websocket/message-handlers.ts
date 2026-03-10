@@ -23,7 +23,7 @@ export interface WebSocketMessage {
 export function handleMessage(ws: WebSocket, message: string): void {
   try {
     const parsedMessage: WebSocketMessage = JSON.parse(message);
-    
+
     switch (parsedMessage.type) {
       case 'complete_level':
         handleCompleteLevel(ws, parsedMessage.data);
@@ -72,7 +72,7 @@ function handleCompleteLevel(ws: WebSocket, data: any): void {
   }
 
   const db = getDatabase();
-  
+
   try {
     // Validate student belongs to the room
     const student = db.getStudentById(studentId);
@@ -105,7 +105,7 @@ function handleCompleteLevel(ws: WebSocket, data: any): void {
     db.addProgress(studentId, levelId);
 
     // Add rewards to inventory
-    level. rewards.forEach(reward => {
+    level.rewards.forEach(reward => {
       db.addInventoryItem(studentId, reward);
     });
 
@@ -356,7 +356,7 @@ function handleRequestRoomState(ws: WebSocket): void {
   }
 
   const db = getDatabase();
-  
+
   try {
     const room = db.getRoomByCode(clientInfo.roomCode);
     if (!room) {
@@ -404,7 +404,7 @@ export function handleConnection(ws: WebSocket, roomCode: string, isTeacher: boo
   if (!isTeacher && studentId) {
     const db = getDatabase();
     const student = db.getStudentWithProgress(studentId);
-    
+
     connectionManager.broadcastToRoom(roomCode, {
       type: 'student_joined',
       data: { student }
