@@ -1,3 +1,14 @@
+// Background images drawn behind the buildings.
+// Each entry: { src, x, yFromGround, width }
+//   src          – path relative to the HTML page (e.g. 'img/coaster.png')
+//   x            – left edge of the image as a fraction of canvas width (0–1)
+//   yFromGround  – bottom edge of the image as a fraction of canvas height
+//                  above the ground line (0 = sits on ground)
+//   width        – image width as a fraction of canvas width
+const BACKGROUND_IMAGES = [
+  { src: 'img/coaster.png', x: 0.72, yFromGround: 0, width: 0.22 },
+];
+
 class SkylineRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -5,7 +16,15 @@ class SkylineRenderer {
     this.students = [];
     this.totalLevels = 10;
     this.selectedStudent = null;
-    
+
+    // Preload background images
+    this.bgImages = BACKGROUND_IMAGES.map(cfg => {
+      const img = new Image();
+      img.src = cfg.src;
+      img.onload = () => this.draw();
+      return { cfg, img };
+    });
+
     // Set up canvas sizing
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -44,12 +63,17 @@ class SkylineRenderer {
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (this.students.length === 0) {
+      this.drawBackgroundImages(40);
       this.drawEmptyState();
       return;
     }
 
-    // Draw ground
+    // Draw background images (behind buildings)
     const groundHeight = 40;
+    this.drawBackgroundImages(groundHeight);
+
+    // Draw ground
+    // (groundHeight already defined above)
     this.ctx.fillStyle = '#2d3436';
     this.ctx.fillRect(0, this.height - groundHeight, this.width, groundHeight);
 
@@ -146,6 +170,18 @@ class SkylineRenderer {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'top';
     this.ctx.fillText('Our City Skyline', this.width / 2, 20);
+  }
+
+  drawBackgroundImages(groundHeight) {
+    for (const { cfg, img } of this.bgImages) {
+      if (!img.complete || img.naturalWidth === 0) continue;
+      const imgW = cfg.width * this.width;
+      const imgH = imgW * (img.naturalHeight / img.naturalWidth);
+      const imgX = cfg.x * this.width;
+      const groundY = this.height - groundHeight;
+      const imgY = groundY - imgH - cfg.yFromGround * this.height;
+      this.ctx.drawImage(img, imgX, imgY, imgW, imgH);
+    }
   }
 
   drawEmptyState() {
