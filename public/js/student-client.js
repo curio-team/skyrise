@@ -7,6 +7,7 @@ let levels = [];
 let totalLevels = 10;
 let reconnectAttempts = 0;
 let reconnectTimeout = null;
+let itemsConfig = {};
 
 async function joinRoom() {
   const roomCodeInput = document.getElementById('room-code').value.trim().toUpperCase();
@@ -44,8 +45,8 @@ async function joinRoom() {
       // Cache session so a page refresh reconnects automatically
       saveSession(studentName);
 
-      // Load levels configuration
-      await loadLevels();
+      // Load levels and item definitions
+      await Promise.all([loadLevels(), loadItems()]);
 
       // Connect WebSocket
       connectWebSocket();
@@ -73,6 +74,17 @@ async function loadLevels() {
     }
   } catch (error) {
     console.error('Error loading levels:', error);
+  }
+}
+
+async function loadItems() {
+  try {
+    const response = await fetch('/api/items');
+    if (response.ok) {
+      itemsConfig = await response.json();
+    }
+  } catch (error) {
+    console.error('Error loading items config:', error);
   }
 }
 
@@ -247,9 +259,7 @@ function updateStudentView() {
   if (studentData.inventory && studentData.inventory.length > 0) {
     document.getElementById('inventory-container').style.display = 'block';
     document.getElementById('inventory-items').innerHTML =
-      studentData.inventory.map(item =>
-        `<div class="inventory-item">${escapeHtml(item)}</div>`
-      ).join('');
+      studentData.inventory.map(key => renderInventoryItem(key)).join('');
   } else {
     document.getElementById('inventory-container').style.display = 'none';
   }
@@ -418,13 +428,18 @@ function animateLevelComplete(rewards) {
 
   // Show rewards notification
   if (rewards && rewards.length > 0) {
-    const rewardText = rewards.join(', ');
     const notification = document.createElement('div');
     notification.className = 'reward-notification';
+    const rewardChips = rewards.map(key => {
+      const item = itemsConfig[key];
+      const icon = item ? getItemIcon(item) : '🏆';
+      const name = item ? escapeHtml(item.name) : escapeHtml(key);
+      return `<span class="reward-chip">${icon} ${name}</span>`;
+    }).join('');
     notification.innerHTML = `
       <h2>🎉 Level Complete!</h2>
       <p>You earned:</p>
-      <p class="reward-items">${escapeHtml(rewardText)}</p>
+      <div class="reward-chips">${rewardChips}</div>
     `;
     document.body.appendChild(notification);
 
@@ -452,6 +467,69 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// ---------------------------------------------------------------------------
+// Item helpers
+// ---------------------------------------------------------------------------
+
+function getItemIcon(item) {
+  if (item.image) {
+    return `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="item-icon-img">`;
+  }
+  return item.emoji || '🏆';
+}
+
+function renderInventoryItem(key) {
+  const item = itemsConfig[key];
+  const name = item ? escapeHtml(item.name) : escapeHtml(key);
+  const icon = item ? getItemIcon(item) : '🏆';
+  return `<div class="inventory-item" title="${name}" onclick="openItemModal('${escapeHtml(key)}')">${icon}</div>`;
+}
+
+function openItemModal(key) {
+  const item = itemsConfig[key];
+  const name = item ? item.name : key;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'item-modal-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', name);
+
+  let mediaHtml;
+  if (item && item.image) {
+    mediaHtml = `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(name)}" class="item-modal-image">`;
+  } else {
+    const emoji = (item && item.emoji) || '🏆';
+    mediaHtml = `<div class="item-modal-emoji">${emoji}</div>`;
+  }
+
+  overlay.innerHTML = `
+    <div class="item-modal-box">
+      <button class="item-modal-close" aria-label="Close">&times;</button>
+      ${mediaHtml}
+      <div class="item-modal-name">${escapeHtml(name)}</div>
+    </div>
+  `;
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.closest('.item-modal-close')) {
+      overlay.remove();
+    }
+  });
+
+  const closeOnEsc = (e) => {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      document.removeEventListener('keydown', closeOnEsc);
+    }
+  };
+  document.addEventListener('keydown', closeOnEsc);
+
+  document.body.appendChild(overlay);
+  // Focus close button for accessibility
+  overlay.querySelector('.item-modal-close').focus();
 }
 
 function saveSession(studentName) {

@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
+import fs from 'fs';
 import { initializeDatabase, getDatabase } from './database/db';
 import { levelConfig } from './config/levelConfig';
 import { handleConnection } from './websocket/message-handlers';
@@ -134,6 +135,18 @@ app.post('/api/rooms/:code/join', (req, res) => {
   } catch (error) {
     console.error('Error joining room:', error);
     return res.status(500).json({ success: false, error: 'Failed to join room' });
+  }
+});
+
+// Item definitions
+app.get('/api/items', (_req, res) => {
+  try {
+    const itemsPath = path.join(__dirname, 'config', 'items.json');
+    const data = fs.readFileSync(itemsPath, 'utf-8');
+    return res.json(JSON.parse(data));
+  } catch (error) {
+    console.error('Error loading items:', error);
+    return res.status(500).json({ success: false, error: 'Failed to load items' });
   }
 });
 

@@ -1,0 +1,90 @@
+{
+  "bronze_medal": {
+    "name": "Bronze Medal",
+    "emoji": "🥉"
+  },
+  "welcome_badge": {
+    "name": "Welcome Badge",
+    "emoji": "👋"
+  },
+  "book_icon": {
+    "name": "Book",
+    "emoji": "📚"
+  },
+  "community_star": {
+    "name": "Community Star",
+    "emoji": "⭐"
+  },
+  "blueprint_scroll": {
+    "name": "Blueprint Scroll",
+    "emoji": "📜"
+  },
+  "creativity_badge": {
+    "name": "Creativity Badge",
+    "emoji": "🎨"
+  },
+  "team_trophy": {
+    "name": "Team Trophy",
+    "emoji": "🏆"
+  },
+  "silver_star": {
+    "name": "Silver Star",
+    "emoji": "✨"
+  },
+  "lightbulb_badge": {
+    "name": "Lightbulb Badge",
+    "emoji": "💡"
+  },
+  "innovator_medal": {
+    "name": "Innovator Medal",
+    "emoji": "🏅"
+  },
+  "leader_crown": {
+    "name": "Leader Crown",
+    "emoji": "👑"
+  },
+  "helper_heart": {
+    "name": "Helper Heart",
+    "emoji": "❤️"
+  },
+  "scholar_scroll": {
+    "name": "Scholar Scroll",
+    "emoji": "📖"
+  },
+  "gold_star": {
+    "name": "Gold Star",
+    "emoji": "🌟"
+  },
+  "eloquence_badge": {
+    "name": "Eloquence Badge",
+    "emoji": "🎤"
+  },
+  "communication_ribbon": {
+    "name": "Communication Ribbon",
+    "emoji": "🎀"
+  },
+  "inventor_wrench": {
+    "name": "Inventor Wrench",
+    "emoji": "🔧"
+  },
+  "innovation_trophy": {
+    "name": "Innovation Trophy",
+    "emoji": "🚀"
+  },
+  "master_badge": {
+    "name": "Master Badge",
+    "emoji": "🎖️"
+  },
+  "golden_trophy": {
+    "name": "Golden Trophy",
+    "emoji": "🏆"
+  },
+  "architect_crown": {
+    "name": "Architect Crown",
+    "emoji": "👑"
+  },
+  "completion_certificate": {
+    "name": "Completion Certificate",
+    "emoji": "📜"
+  }
+}
