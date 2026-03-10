@@ -184,8 +184,7 @@ Edit `src/config/levels.json` to customize levels:
     "id": 1,
     "title": "Level Title",
     "description": "Brief description",
-    "assignmentText": "Detailed assignment instructions for students",
-    "rewards": ["item1", "item2"]
+    "rewards": ["item_id_1", "item_id_2"]
   }
 ]
 ```

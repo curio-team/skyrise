@@ -7,7 +7,6 @@ export interface Level {
   type: string;
   title: string;
   description: string;
-  assignmentText: string;
   rewards: string[];
   /** Handler-specific configuration (e.g. choices for multiple_choice). */
   handlerConfig?: Record<string, unknown>;
@@ -25,7 +24,7 @@ class LevelConfig {
       const configPath = path.join(__dirname, '..', 'config', 'levels.json');
       const data = fs.readFileSync(configPath, 'utf-8');
       this.levels = JSON.parse(data);
-      
+
       // Validate levels
       if (!Array.isArray(this.levels) || this.levels.length === 0) {
         throw new Error('Levels must be a non-empty array');

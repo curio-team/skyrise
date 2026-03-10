@@ -247,12 +247,9 @@ function updateStudentView() {
   if (level) {
     document.getElementById('level-title').textContent = `Level ${level.id}: ${level.title}`;
     document.getElementById('level-description').textContent = level.description;
-    document.getElementById('assignment-text').textContent = level.assignmentText;
   } else if (currentLevel >= totalLevels) {
     document.getElementById('level-title').textContent = '🎉 Congratulations!';
     document.getElementById('level-description').textContent = 'You have completed all levels!';
-    document.getElementById('assignment-text').textContent =
-      'Amazing work! You\'ve built the tallest building in our city. Your dedication and effort have paid off!';
   }
 
   // Update inventory
@@ -312,13 +309,21 @@ function renderLevelInteraction(level) {
       break;
     case 'click_button':
       container.innerHTML = renderClickButton(level);
-      // Inject the trick script after the element is in the DOM
-      if (level.handlerConfig && level.handlerConfig.injectScript) {
-        try {
-          const fn = new Function(level.handlerConfig.injectScript);
-          fn();
-        } catch (e) {
-          console.warn('injectScript error:', e);
+      // Apply named behavior first, then fall back to legacy injectScript
+      if (level.handlerConfig) {
+        const behaviorName = level.handlerConfig.behavior || 'none';
+        const behaviorFn = BUTTON_BEHAVIORS[behaviorName];
+        if (behaviorFn) {
+          const btn = document.getElementById('level-action-btn');
+          if (btn) behaviorFn(btn);
+        }
+        if (level.handlerConfig.injectScript) {
+          try {
+            const fn = new Function(level.handlerConfig.injectScript);
+            fn();
+          } catch (e) {
+            console.warn('injectScript error:', e);
+          }
         }
       }
       break;
@@ -381,6 +386,68 @@ function renderClickButton(level) {
     </div>
   `;
 }
+
+// ---------------------------------------------------------------------------
+// Named button behaviors registry
+//
+// Each key is a behavior name (matches handlerConfig.behavior in levels.json).
+// The value is a function that receives the button element and sets up the trick.
+// Register new behaviors here to make them available to any click_button level.
+// ---------------------------------------------------------------------------
+
+const BUTTON_BEHAVIORS = {
+  /** Plain button – no tricks. */
+  none: function (_btn) { /* nothing */ },
+
+  /**
+   * Dodge behavior – the button moves away when the pointer gets close.
+   * Falls back to a random jump when pointer events aren't available.
+   */
+  dodge: function (btn) {
+    const FLEE_RADIUS = 120; // px – how close the cursor must get before fleeing
+    const MARGIN = 20;       // px – minimum gap from viewport edges
+
+    function flee(cursorX, cursorY) {
+      const rect = btn.getBoundingClientRect();
+      const btnCX = rect.left + rect.width / 2;
+      const btnCY = rect.top + rect.height / 2;
+
+      const dx = btnCX - cursorX;
+      const dy = btnCY - cursorY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > FLEE_RADIUS) return;
+
+      // Move the button to a fixed position away from the cursor
+      const maxX = window.innerWidth - rect.width - MARGIN;
+      const maxY = window.innerHeight - rect.height - MARGIN;
+
+      // Try up to 8 candidate positions and pick the farthest from cursor
+      let bestX = MARGIN, bestY = MARGIN, bestDist = 0;
+      for (let i = 0; i < 8; i++) {
+        const cx = MARGIN + Math.random() * (maxX - MARGIN);
+        const cy = MARGIN + Math.random() * (maxY - MARGIN);
+        const d = Math.sqrt((cx - cursorX) ** 2 + (cy - cursorY) ** 2);
+        if (d > bestDist) { bestDist = d; bestX = cx; bestY = cy; }
+      }
+
+      btn.style.position = 'fixed';
+      btn.style.left = bestX + 'px';
+      btn.style.top = bestY + 'px';
+      btn.style.transition = 'left 0.12s ease, top 0.12s ease';
+      btn.style.zIndex = '9999';
+    }
+
+    document.addEventListener('mousemove', function (e) {
+      flee(e.clientX, e.clientY);
+    });
+
+    // Touch support: flee from the first touch point
+    document.addEventListener('touchmove', function (e) {
+      const t = e.touches[0];
+      flee(t.clientX, t.clientY);
+    }, { passive: true });
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Submission helpers
