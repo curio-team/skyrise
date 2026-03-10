@@ -158,6 +158,9 @@ function handleMessage(message) {
     case 'kicked':
       handleKicked(message.data);
       break;
+    case 'hold_status':
+      handleHoldStatus(message.data);
+      break;
     case 'error':
       showError(message.data.message);
       break;
@@ -307,6 +310,10 @@ function renderLevelInteraction(level) {
     case 'open_input':
       container.innerHTML = renderOpenInput(level);
       break;
+    case 'sync_hold':
+      container.innerHTML = renderSyncHold(level);
+      setupSyncHoldButton(level);
+      break;
     case 'click_button':
       container.innerHTML = renderClickButton(level);
       // Apply named behavior first, then fall back to legacy injectScript
@@ -370,6 +377,69 @@ function renderOpenInput(level) {
   `;
 }
 
+function renderSyncHold(level) {
+  const cfg = level.handlerConfig || {};
+  const label = escapeHtml(cfg.buttonLabel || 'Houd vast!');
+  const duration = cfg.holdDurationMs ?? 1000;
+
+  return `
+    <div class="level-interaction-panel">
+      <p class="open-input-prompt">Hou samen met <strong>alle spelers</strong> de knop ingedrukt voor ${(duration / 1000).toFixed(1)} seconden!</p>
+      <div id="hold-status" class="answer-feedback" style="margin-bottom:12px;"></div>
+      <div class="click-button-wrapper">
+        <button id="level-action-btn" class="btn btn-secondary" style="width:auto; padding: 18px 40px; font-size:1.2em; user-select:none;"
+          data-level-id="${level.id}">
+          ${label}
+        </button>
+      </div>
+      <div id="interaction-feedback" class="answer-feedback"></div>
+    </div>
+  `;
+}
+
+function setupSyncHoldButton(level) {
+  const btn = document.getElementById('level-action-btn');
+  if (!btn) return;
+  const levelId = level.id;
+  let holding = false;
+
+  function startHold(e) {
+    e.preventDefault();
+    if (holding) return;
+    holding = true;
+    btn.classList.add('btn-holding');
+    btn.style.transform = 'scale(0.95)';
+    sendMessage({ type: 'hold_start', data: { levelId } });
+  }
+
+  function endHold() {
+    if (!holding) return;
+    holding = false;
+    btn.classList.remove('btn-holding');
+    btn.style.transform = '';
+    sendMessage({ type: 'hold_end', data: { levelId } });
+  }
+
+  btn.addEventListener('mousedown', startHold);
+  btn.addEventListener('touchstart', startHold, { passive: false });
+  window.addEventListener('mouseup', endHold);
+  window.addEventListener('touchend', endHold);
+  // Release if focus is lost (e.g. alt-tab)
+  window.addEventListener('blur', endHold);
+}
+
+function handleHoldStatus(data) {
+  const el = document.getElementById('hold-status');
+  if (!el) return;
+  const { holdersCount, requiredCount } = data;
+  if (requiredCount === 0) {
+    el.textContent = '';
+    return;
+  }
+  el.textContent = `${holdersCount} / ${requiredCount} spelers houden de knop ingedrukt`;
+  el.className = 'answer-feedback ' + (holdersCount >= requiredCount ? 'success' : '');
+}
+
 function renderClickButton(level) {
   const cfg = level.handlerConfig || {};
   const label = escapeHtml(cfg.buttonLabel || 'Click Me!');
@@ -390,7 +460,7 @@ function renderClickButton(level) {
 // ---------------------------------------------------------------------------
 // Named button behaviors registry
 //
-// Each key is a behavior name (matches handlerConfig.behavior in levels.json).
+// Each key is a behavior name (matches handlerConfig.behavior in levels.ts).
 // The value is a function that receives the button element and sets up the trick.
 // Register new behaviors here to make them available to any click_button level.
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import { LevelHandler, LevelHandlerResult, ValidationContext } from './base-handler';
+import { LevelHandler, LevelHandlerResult, ServerContext } from './base-handler';
 
 // ---------------------------------------------------------------------------
 // Validation rules — add new rule shapes here to extend the system
@@ -27,17 +27,7 @@ interface ExactRule {
   caseSensitive?: boolean;
 }
 
-/**
- * Evaluates a JS expression server-side.
- * Available variables in scope: `answer` (string), `playerNames` (string[]).
- * The expression is loaded from the trusted config file, never from user input.
- */
-interface LogicRule {
-  type: 'logic';
-  expression: string;
-}
-
-export type ValidationRule = ContainsAllRule | ContainsAnyRule | MinLengthRule | ExactRule | LogicRule;
+export type ValidationRule = ContainsAllRule | ContainsAnyRule | MinLengthRule | ExactRule;
 
 // ---------------------------------------------------------------------------
 
@@ -55,7 +45,7 @@ export interface OpenInputSubmission {
 export class OpenInputHandler implements LevelHandler<OpenInputConfig, OpenInputSubmission> {
   readonly type = 'open_input';
 
-  validate(submission: OpenInputSubmission, config: OpenInputConfig, context?: ValidationContext): LevelHandlerResult {
+  validate(submission: OpenInputSubmission, config: OpenInputConfig, _context: ServerContext): LevelHandlerResult {
     const answer = (submission.answer ?? '').trim();
 
     if (!answer) {
@@ -100,23 +90,6 @@ export class OpenInputHandler implements LevelHandler<OpenInputConfig, OpenInput
         const expected = rule.caseSensitive ? rule.answer : rule.answer.toLowerCase();
         if (submitted !== expected) {
           return { success: false, message: 'Incorrect answer — try again!' };
-        }
-        break;
-      }
-
-      case 'logic': {
-        try {
-          const playerNames = context?.playerNames ?? [];
-          // Expression is from the trusted server-side config, not user input.
-          // eslint-disable-next-line no-new-func
-          const fn = new Function('answer', 'playerNames', `return !!(${rule.expression});`);
-          const passed = fn(answer, playerNames) as boolean;
-          if (!passed) {
-            return { success: false, message: 'Je antwoord klopt nog niet helemaal. Probeer het opnieuw!' };
-          }
-        } catch (err) {
-          console.error('Logic validation expression error:', err);
-          return { success: false, message: 'Er is een fout opgetreden bij de validatie.' };
         }
         break;
       }

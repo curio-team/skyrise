@@ -41,7 +41,7 @@ export interface StudentWithProgress extends Student {
   inventory: string[];
 }
 
-class DatabaseService {
+export class DatabaseService {
   private db: Database.Database;
 
   constructor(dbPath: string) {

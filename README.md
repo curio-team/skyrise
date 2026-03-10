@@ -169,29 +169,3 @@ sudo ufw allow OpenSSH
 sudo ufw allow 'Apache Full'   # ports 80 and 443
 sudo ufw enable
 ```
-
----
-
-## Configuration
-
-### Level Configuration
-
-Edit `src/config/levels.json` to customize levels:
-
-```json
-[
-  {
-    "id": 1,
-    "title": "Level Title",
-    "description": "Brief description",
-    "rewards": ["item_id_1", "item_id_2"]
-  }
-]
-```
-
-After editing, rebuild and restart:
-
-```bash
-npm run build
-npm start
-```

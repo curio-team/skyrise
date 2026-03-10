@@ -3,9 +3,9 @@ import { connectionManager } from './connection-manager';
 import { getDatabase } from '../database/db';
 import { levelConfig } from '../config/levelConfig';
 import { getHandler } from '../level-handlers';
-import type { Level } from '../config/levelConfig';
+import type { ServerContext, LevelDefinition } from '../level-handlers/base-handler';
 
-function sanitizeLevel(level: Level): Record<string, unknown> {
+function sanitizeLevel(level: LevelDefinition): Record<string, unknown> {
   const handler = getHandler(level.type ?? 'static');
   const clientConfig = handler && level.handlerConfig
     ? handler.getClientConfig(level.handlerConfig)
@@ -36,6 +36,10 @@ export function handleMessage(ws: WebSocket, message: string): void {
         break;
       case 'button_clicked':
         handleButtonClicked(ws, parsedMessage.data);
+        break;
+      case 'hold_start':
+      case 'hold_end':
+        handleHoldEvent(ws, parsedMessage.type as 'hold_start' | 'hold_end', parsedMessage.data);
         break;
       case 'request_room_state':
         handleRequestRoomState(ws);
@@ -224,13 +228,17 @@ function handleSubmitAnswer(ws: WebSocket, data: any): void {
   }
 
   const db = getDatabase();
-  const room = db.getRoomByCode(clientInfo.roomCode);
-  const playerNames = room
-    ? db.getStudentsByRoom(room.id).map((s) => s.name)
-    : [];
-  const context = { playerNames };
+  const context: ServerContext = {
+    db,
+    connectionManager,
+    roomCode: clientInfo.roomCode,
+    studentId,
+  };
 
-  const result = handler.validate(data?.submission ?? {}, level.handlerConfig ?? {}, context);
+  // A level-level validate() overrides the handler's built-in validation.
+  const result = level.validate
+    ? level.validate(data?.submission ?? {}, context)
+    : handler.validate(data?.submission ?? {}, level.handlerConfig ?? {}, context);
   if (!result.success) {
     connectionManager.sendToClient(ws, {
       type: 'answer_rejected',
@@ -282,13 +290,48 @@ function handleButtonClicked(ws: WebSocket, data: any): void {
     return;
   }
 
-  const result = handler.validate({ clicked: true }, level.handlerConfig ?? {});
+  const result = handler.validate({ clicked: true }, level.handlerConfig ?? {}, {
+    db: getDatabase(),
+    connectionManager,
+    roomCode: clientInfo.roomCode,
+    studentId,
+  });
   if (!result.success) {
     sendError(ws, result.message ?? 'Click not accepted.');
     return;
   }
 
   completeLevelForStudent(ws, clientInfo.roomCode, studentId, levelId);
+}
+
+/**
+ * Routes hold_start / hold_end events to the level's handler.
+ * Expected payload: { levelId: number }
+ */
+function handleHoldEvent(ws: WebSocket, eventType: 'hold_start' | 'hold_end', data: any): void {
+  const clientInfo = connectionManager.getClientInfo(ws);
+  if (!clientInfo || clientInfo.isTeacher) return;
+
+  const studentId = clientInfo.studentId;
+  if (!studentId) return;
+
+  const levelId: number = typeof data?.levelId === 'number' ? data.levelId : parseInt(data?.levelId);
+  if (!levelId || isNaN(levelId)) return;
+
+  const level = levelConfig.getLevelById(levelId);
+  if (!level) return;
+
+  const handler = getHandler(level.type);
+  if (!handler?.handleEvent) return;
+
+  const context: ServerContext = {
+    db: getDatabase(),
+    connectionManager,
+    roomCode: clientInfo.roomCode,
+    studentId,
+  };
+
+  handler.handleEvent(eventType, { levelId }, level.handlerConfig ?? {}, context);
 }
 
 function handleKickStudent(ws: WebSocket, data: any): void {

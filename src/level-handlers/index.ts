@@ -14,6 +14,7 @@ import { StaticHandler } from './static-handler';
 import { MultipleChoiceHandler } from './multiple-choice-handler';
 import { OpenInputHandler } from './open-input-handler';
 import { ClickButtonHandler } from './click-button-handler';
+import { SyncHoldHandler } from './sync-hold-handler';
 
 export type { LevelHandler, LevelHandlerResult } from './base-handler';
 export type { MultipleChoiceConfig, MultipleChoiceSubmission } from './multiple-choice-handler';
@@ -41,6 +42,7 @@ register(new StaticHandler());
 register(new MultipleChoiceHandler());
 register(new OpenInputHandler());
 register(new ClickButtonHandler());
+register(new SyncHoldHandler());
 
 // ---------------------------------------------------------------------------
 // Public API
