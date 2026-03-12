@@ -12,11 +12,19 @@ function escapeHtml(s: string): string {
 const levels: LevelDefinition[] = [
   {
     id: 1,
+    type: 'static',
+    title: 'Wachtend op spelers...',
+    description:
+      'Welkom bij DevCity! We wachten nog even op meer spelers om zich aan te sluiten. Zodra iedereen klaar is, zal de leraar het eerste level starten en kunnen jullie samen op avontuur gaan!',
+    rewards: ['welcome_badge'],
+  },
+  {
+    id: 2,
     type: 'click_button',
     title: 'Introductie tot DevCity',
     description:
       'Welcome in DevCity. Als opwarmertje, klik simpelweg op de knop om je eerste beloningen te verdienen en klaar te zijn voor het avontuur dat voor je ligt!',
-    rewards: ['bronze_medal', 'welcome_badge'],
+    rewards: ['bronze_medal'],
     handlerConfig: {
       buttonLabel: 'Ik ben klaar!',
       behavior: 'none',
@@ -38,7 +46,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 2,
+    id: 3,
     type: 'click_button',
     title: 'DevCity kan verrassend zijn',
     description:
@@ -65,7 +73,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 3,
+    id: 4,
     type: 'open_input',
     title: 'Wie speelt er mee?',
     description:
@@ -109,7 +117,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 4,
+    id: 5,
     type: 'sync_hold',
     title: 'De grote synchronisatie!',
     description:
@@ -140,7 +148,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 5,
+    id: 6,
     type: 'click_button',
     title: 'De knop verstopt zich!',
     description:
@@ -169,7 +177,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 6,
+    id: 7,
     type: 'open_input',
     title: 'De geheime code',
     description:
@@ -195,7 +203,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 7,
+    id: 8,
     type: 'static',
     title: 'Bouw je gebouw!',
     description:
@@ -203,7 +211,7 @@ const levels: LevelDefinition[] = [
     rewards: ['leader_crown', 'helper_heart'],
   },
   {
-    id: 8,
+    id: 9,
     type: 'multiple_choice',
     title: 'DevCity Trivia',
     description: 'Alleen echte DevCity-bewoners weten dit! Bewijs dat jij de stad door en door kent.',
@@ -233,7 +241,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 9,
+    id: 10,
     type: 'open_input',
     title: 'Jouw superheldenkracht',
     description:
@@ -259,7 +267,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 10,
+    id: 11,
     type: 'click_button',
     title: 'De finale knop',
     description:
@@ -287,7 +295,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 11,
+    id: 12,
     type: 'static',
     title: 'DevCity Meester-Bouwer!',
     description:
