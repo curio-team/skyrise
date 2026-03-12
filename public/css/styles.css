@@ -283,8 +283,8 @@ body {
 }
 
 .select-all-checkbox, .student-checkbox {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 15px;
   cursor: pointer;
   flex-shrink: 0;
   /* hide native */
