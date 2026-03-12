@@ -186,40 +186,6 @@ const levels: LevelDefinition[] = [
   },
   {
     id: 7,
-    type: 'open_input',
-    title: 'De geheime code',
-    description:
-      'Ergens in DevCity is een geheime code verborgen. Vraag het aan een mede-speler, want zij weten het antwoord... misschien. De code bestaat uit een kleur, een dier en een getal.',
-    rewards: ['lightbulb_badge', 'innovator_medal'],
-    handlerConfig: {
-      prompt: 'Wat is de geheime code? Schrijf een kleur, een dier én een getal op.',
-      placeholder: 'Blauw, olifant, 42...',
-      validation: { type: 'min_length', length: 5 },
-    },
-    renderHtml(cfg: Record<string, unknown>): string {
-      const prompt = escapeHtml(String(cfg.prompt ?? 'Enter your answer:'));
-      const placeholder = escapeHtml(String(cfg.placeholder ?? ''));
-      return `
-        <div class="level-interaction-panel" x-data="openInputLevel(${this.id})">
-          <div class="open-input-prompt">${prompt}</div>
-          <textarea id="open-input-answer" class="open-input-field"
-                    placeholder="${placeholder}" x-model="answer"></textarea>
-          <div id="interaction-feedback" class="answer-feedback"></div>
-          <button class="btn" @click="submit()">Submit Answer</button>
-        </div>
-      `;
-    },
-  },
-  {
-    id: 8,
-    type: 'static',
-    title: 'Bouw je gebouw!',
-    description:
-      'Werk samen met twee andere spelers om een imaginair gebouw te ontwerpen. Vertel de leraar welk gebouw jullie hebben bedacht en wie je teamgenoten waren om dit level te voltooien!',
-    rewards: ['leader_crown', 'helper_heart'],
-  },
-  {
-    id: 9,
     type: 'multiple_choice',
     title: 'DevCity Trivia',
     description: 'Alleen echte DevCity-bewoners weten dit! Bewijs dat jij de stad door en door kent.',
@@ -249,69 +215,7 @@ const levels: LevelDefinition[] = [
     },
   },
   {
-    id: 10,
-    type: 'open_input',
-    title: 'Jouw superheldenkracht',
-    description:
-      'Elke DevCity-held heeft een speciale kracht. Wat is jouw superpower en hoe gebruik je die om DevCity te verbeteren? Wees creatief!',
-    rewards: ['eloquence_badge', 'communication_ribbon'],
-    handlerConfig: {
-      prompt: 'Beschrijf jouw superheldenkracht en hoe je DevCity daarmee verbetert.',
-      placeholder: 'Mijn superpower is... Hiermee kan ik DevCity verbeteren door...',
-      validation: { type: 'contains_all', keywords: ['superpower', 'devcity'] },
-    },
-    renderHtml(cfg: Record<string, unknown>): string {
-      const prompt = escapeHtml(String(cfg.prompt ?? 'Enter your answer:'));
-      const placeholder = escapeHtml(String(cfg.placeholder ?? ''));
-      return `
-        <div class="level-interaction-panel" x-data="openInputLevel(${this.id})">
-          <div class="open-input-prompt">${prompt}</div>
-          <textarea id="open-input-answer" class="open-input-field"
-                    placeholder="${placeholder}" x-model="answer"></textarea>
-          <div id="interaction-feedback" class="answer-feedback"></div>
-          <button class="btn" @click="submit()">Submit Answer</button>
-        </div>
-      `;
-    },
-  },
-  {
-    id: 11,
-    type: 'click_button',
-    title: 'De finale knop',
-    description:
-      'Dit is de allerlaatste knop van DevCity. Hij is snel, hij is wild, maar jij bent sneller. Vang hem en claim je plek als DevCity-legende!',
-    rewards: ['inventor_wrench', 'innovation_trophy'],
-    handlerConfig: {
-      buttonLabel: 'Ik ben een legende!',
-      injectScript:
-        "(function(){var btn=document.getElementById('level-action-btn');if(!btn)return;btn.addEventListener('mouseover',function move(){var x=Math.random()*(window.innerWidth-140);var y=Math.random()*(window.innerHeight-60);btn.style.position='fixed';btn.style.left=x+'px';btn.style.top=y+'px';});})();",
-    },
-    renderHtml(cfg: Record<string, unknown>): string {
-      const label = escapeHtml(String(cfg.buttonLabel ?? 'Click Me!'));
-      return `
-        <div class="level-interaction-panel" x-data="clickButtonLevel(${this.id})">
-          <div class="click-button-wrapper">
-            <button id="level-action-btn" class="btn btn-secondary"
-                    style="width:auto; padding: 14px 32px; font-size:1.1em;"
-                    @click="submit()">
-              ${label}
-            </button>
-          </div>
-          <div id="interaction-feedback" class="answer-feedback"></div>
-        </div>
-      `;
-    },
-  },
-  {
-    id: 12,
-    type: 'static',
-    title: 'DevCity Meester-Bouwer!',
-    description:
-      'Gefeliciteerd! Je hebt alle uitdagingen van DevCity doorstaan, nieuwe vrienden gemaakt, codes gekraakt en knoppen gevangen. DevCity kroont jou tot Meester-Bouwer! Laat de leraar weten dat je klaar bent en ontvang je legendarische beloningen.',
-    rewards: ['master_badge', 'golden_trophy', 'architect_crown', 'completion_certificate'],
-  },
-  {
-    id: 13,
+    id: 8,
     type: 'communal',
     communal: true,
     roomWide: true,
