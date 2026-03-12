@@ -67,9 +67,11 @@ export class SyncHoldHandler implements LevelHandler<SyncHoldConfig, unknown> {
     if (!room) return;
 
     const students = context.db.getStudentsByRoom(room.id);
-    const studentsOnLevel = students.filter(
-      (s) => context.db.getCurrentLevel(s.id) === levelId,
-    );
+    // const studentsOnLevel = students.filter(
+    //   (s) => context.db.getCurrentLevel(s.id) === levelId,
+    // );
+    // Let's just get everyone past this level:
+    const studentsOnLevel = students;
     const requiredCount = studentsOnLevel.length;
 
     // Broadcast live status so the client can show "3/5 players holding"
