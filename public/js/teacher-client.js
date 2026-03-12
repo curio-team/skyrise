@@ -6,6 +6,7 @@ let students = [];
 let levels = [];
 let totalLevels = 10;
 let selectedStudent = null;
+let checkedStudents = new Set();
 let skylineRenderer = null;
 let reconnectAttempts = 0;
 let reconnectTimeout = null;
@@ -200,6 +201,7 @@ function handleStudentDisconnected(data) {
 
 function handleStudentKicked(data) {
   students = students.filter(s => s.id !== data.studentId);
+  checkedStudents.delete(data.studentId);
   if (selectedStudent && selectedStudent.id === data.studentId) {
     selectedStudent = null;
     document.getElementById('no-selection').style.display = 'block';
@@ -224,21 +226,84 @@ function updateStudentList() {
 
   studentCount.textContent = students.length;
 
+  // Remove checked students that no longer exist
+  const studentIds = new Set(students.map(s => s.id));
+  for (const id of checkedStudents) {
+    if (!studentIds.has(id)) checkedStudents.delete(id);
+  }
+
   if (students.length === 0) {
     studentList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No students yet</p>';
+    updateBulkControls();
     return;
   }
 
   studentList.innerHTML = students.map(student => `
     <div class="student-item ${selectedStudent && selectedStudent.id === student.id ? 'selected' : ''}" 
          onclick="selectStudent(${student.id})">
+      <input type="checkbox" class="student-checkbox"
+             ${checkedStudents.has(student.id) ? 'checked' : ''}
+             onclick="toggleStudentCheck(${student.id}, event)">
       <div class="student-color" style="background: ${student.color};"></div>
       <div class="student-info">
         <div class="student-name">${escapeHtml(student.name)}</div>
-        <div class="student-level">Level ${student.current_level - 1}/${totalLevels}</div>
       </div>
+      <div class="student-level">${student.current_level - 1}/${totalLevels}</div>
     </div>
   `).join('');
+
+  updateBulkControls();
+}
+
+function toggleStudentCheck(studentId, event) {
+  event.stopPropagation();
+  if (checkedStudents.has(studentId)) {
+    checkedStudents.delete(studentId);
+  } else {
+    checkedStudents.add(studentId);
+  }
+  updateStudentList();
+}
+
+function toggleSelectAll() {
+  const allChecked = students.length > 0 && students.every(s => checkedStudents.has(s.id));
+  if (allChecked) {
+    checkedStudents.clear();
+  } else {
+    students.forEach(s => checkedStudents.add(s.id));
+  }
+  updateStudentList();
+}
+
+function updateBulkControls() {
+  const count = checkedStudents.size;
+  const btn = document.getElementById('bulk-complete-btn');
+  const cb = document.getElementById('select-all-checkbox');
+  if (!btn || !cb) return;
+
+  btn.disabled = count === 0;
+  btn.textContent = count > 0 ? `Complete level (${count})` : 'Complete level';
+
+  if (students.length === 0 || count === 0) {
+    cb.checked = false;
+    cb.indeterminate = false;
+  } else if (count === students.length) {
+    cb.checked = true;
+    cb.indeterminate = false;
+  } else {
+    cb.checked = false;
+    cb.indeterminate = true;
+  }
+}
+
+function bulkCompleteLevel() {
+  if (checkedStudents.size === 0) return;
+  students
+    .filter(s => checkedStudents.has(s.id) && s.current_level <= totalLevels)
+    .forEach(student => sendMessage({
+      type: 'complete_level',
+      data: { studentId: student.id, levelId: student.current_level }
+    }));
 }
 
 function selectStudent(studentId) {
@@ -424,6 +489,7 @@ function leaveRoom() {
   levels = [];
   totalLevels = 10;
   selectedStudent = null;
+  checkedStudents = new Set();
   skylineRenderer = null;
   reconnectAttempts = 0;
   document.getElementById('dashboard-container').style.display = 'none';

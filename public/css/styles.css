@@ -213,15 +213,15 @@ body {
 }
 
 .student-item {
-  padding: 10px 12px;
-  margin-bottom: 4px;
+  padding: 6px 10px;
+  margin-bottom: 3px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   border: 1px solid transparent;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .student-item:hover {
@@ -247,14 +247,121 @@ body {
 
 .student-name {
   font-weight: 600;
-  margin-bottom: 2px;
-  font-size: 0.9em;
+  font-size: 0.88em;
   color: var(--text-primary);
 }
 
 .student-level {
+  margin-left: auto;
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Bulk controls ── */
+.bulk-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
   font-size: 0.78em;
   color: var(--text-secondary);
+  user-select: none;
+}
+
+.select-all-checkbox, .student-checkbox {
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  /* hide native */
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  vertical-align: middle;
+}
+
+.select-all-checkbox:hover, .student-checkbox:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.select-all-checkbox:checked, .student-checkbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.select-all-checkbox:indeterminate, .student-checkbox:indeterminate {
+  background: var(--bg-elevated);
+  border-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.select-all-checkbox:checked::after, .student-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 4px;
+  height: 7px;
+  border: 2px solid #070d1a;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.select-all-checkbox:indeterminate::after, .student-checkbox:indeterminate::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 7px;
+  height: 0;
+  border-top: 2px solid var(--accent);
+}
+
+.btn-bulk-complete {
+  margin-left: auto;
+  background: var(--green);
+  color: #030d0a;
+  border: none;
+  padding: 4px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 0.73em;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: box-shadow 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.btn-bulk-complete:hover:not(:disabled) {
+  box-shadow: 0 0 12px rgba(0, 232, 122, 0.3);
+}
+
+.btn-bulk-complete:disabled {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
 /* ── Buttons ── */

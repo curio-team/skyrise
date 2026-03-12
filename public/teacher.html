@@ -72,6 +72,13 @@
       <div class="sidebar">
         <div class="students-panel">
           <h3>Students (<span id="student-count">0</span>)</h3>
+          <div class="bulk-controls" id="bulk-controls">
+            <label class="select-all-label">
+              <input type="checkbox" id="select-all-checkbox" class="select-all-checkbox" onclick="toggleSelectAll()">
+              <span>All</span>
+            </label>
+            <button class="btn-bulk-complete" id="bulk-complete-btn" onclick="bulkCompleteLevel()" disabled>Complete level</button>
+          </div>
           <div class="student-list"
                id="student-list">
             <p style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.9em;">No students yet</p>
