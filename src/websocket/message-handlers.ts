@@ -113,7 +113,7 @@ function handleCompleteLevel(ws: WebSocket, data: any): void {
     const context: ServerContext = { db, connectionManager, roomCode: clientInfo.roomCode, studentId };
     const rewards = level.dynamicRewards ? level.dynamicRewards(context) : level.rewards;
     db.addProgress(studentId, levelId);
-    rewards.forEach(reward => db.addInventoryItem(studentId, reward));
+    rewards!.forEach(reward => db.addInventoryItem(studentId, reward));
 
     // Get updated student data
     const updatedStudent = db.getStudentWithProgress(studentId);
@@ -170,7 +170,7 @@ function completeLevelForStudent(
   const context: ServerContext = { db, connectionManager, roomCode, studentId };
   const rewards = level.dynamicRewards ? level.dynamicRewards(context) : level.rewards;
   db.addProgress(studentId, levelId);
-  rewards.forEach((reward) => db.addInventoryItem(studentId, reward));
+  rewards!.forEach((reward) => db.addInventoryItem(studentId, reward));
 
   const updatedStudent = db.getStudentWithProgress(studentId);
   connectionManager.broadcastToRoom(roomCode, {
@@ -496,7 +496,7 @@ function handleCompleteCommunalLevel(ws: WebSocket, data: any): void {
     };
     const rewards = level.dynamicRewards ? level.dynamicRewards(context) : level.rewards;
     db.addProgress(student.id, levelId);
-    rewards.forEach((r) => db.addInventoryItem(student.id, r));
+    rewards!.forEach((r) => db.addInventoryItem(student.id, r));
 
     const updatedStudent = db.getStudentWithProgress(student.id);
     connectionManager.broadcastToRoom(clientInfo.roomCode, {
@@ -533,7 +533,7 @@ function autoSkipCommunalLevels(ws: WebSocket, roomCode: string, studentId: numb
     const context: ServerContext = { db, connectionManager, roomCode, studentId };
     const rewards = currentLevel.dynamicRewards ? currentLevel.dynamicRewards(context) : currentLevel.rewards;
     db.addProgress(studentId, currentLevelId);
-    rewards.forEach((r) => db.addInventoryItem(studentId, r));
+    rewards!.forEach((r) => db.addInventoryItem(studentId, r));
     console.log(`Auto-skipped communal level ${currentLevelId} for student ${studentId}`);
     advanced = true;
   }
