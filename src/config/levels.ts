@@ -69,10 +69,10 @@ const levels: LevelDefinition[] = [
     type: 'open_input',
     title: 'Wie speelt er mee?',
     description:
-      "Verzamel de namen van 5 andere spelers die nu mee doen! Scheid de namen met komma's.",
+      "Verzamel de namen van 5% van de spelers die nu mee doen! Scheid de namen met komma's.",
     rewards: ['blueprint_scroll', 'creativity_badge'],
     handlerConfig: {
-      prompt: "Voer de namen van 5 andere spelers in, gescheiden door komma's.",
+      prompt: "Voer de namen van 5% van de spelers in, gescheiden door komma's.",
       placeholder: 'Speler1, Speler2, Speler3, ...',
     },
     validate(submission: unknown, context: ServerContext): LevelHandlerResult {
@@ -81,18 +81,17 @@ const levels: LevelDefinition[] = [
       if (!room) return { success: false, message: 'Kamer niet gevonden.' };
 
       const students = context.db.getStudentsByRoom(room.id);
-      // Exclude the submitting student themselves
-      const others = students.filter((s) => s.id !== context.studentId);
       const entered = answer
         .split(',')
         .map((s) => s.trim().toLowerCase())
         .filter(Boolean);
-      const matched = others.filter((s) => entered.includes(s.name.toLowerCase()));
+      const matched = students.filter((s) => entered.includes(s.name.toLowerCase()));
+      const requiredCount = Math.ceil(students.length * 0.05);
 
-      if (matched.length >= 5) return { success: true };
+      if (matched.length >= requiredCount) return { success: true };
       return {
         success: false,
-        message: `Je hebt ${matched.length} van de 5 benodigde medespelers gevonden. Probeer opnieuw!`,
+        message: `Je hebt ${matched.length} van de ${requiredCount} benodigde medespelers gevonden. Probeer opnieuw!`,
       };
     },
     renderHtml(cfg: Record<string, unknown>): string {
