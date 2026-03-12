@@ -36,6 +36,16 @@ CREATE TABLE IF NOT EXISTS inventory (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
+-- Room progress table: tracks communal (room-wide) level completions
+CREATE TABLE IF NOT EXISTS room_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_id INTEGER NOT NULL,
+    level_id INTEGER NOT NULL,
+    completed_at INTEGER NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+    UNIQUE(room_id, level_id)
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms(code);
 CREATE INDEX IF NOT EXISTS idx_students_room ON students(room_id);

@@ -11,8 +11,8 @@ function sanitizeLevel(level: LevelDefinition): Record<string, unknown> {
     ? handler.getClientConfig(level.handlerConfig)
     : {};
   const html = level.renderHtml ? level.renderHtml(clientConfig) : undefined;
-  const { handlerConfig: _raw, validate: _v, renderHtml: _r, ...rest } = level as unknown as Record<string, unknown>;
-  void _raw; void _v; void _r;
+  const { handlerConfig: _raw, validate: _v, renderHtml: _r, dynamicRewards: _dr, ...rest } = level as unknown as Record<string, unknown>;
+  void _raw; void _v; void _r; void _dr;
   return { ...rest, handlerConfig: clientConfig, ...(html !== undefined ? { html } : {}) };
 }
 
@@ -41,6 +41,9 @@ export function handleMessage(ws: WebSocket, message: string): void {
       case 'hold_start':
       case 'hold_end':
         handleHoldEvent(ws, parsedMessage.type as 'hold_start' | 'hold_end', parsedMessage.data);
+        break;
+      case 'complete_communal_level':
+        handleCompleteCommunalLevel(ws, parsedMessage.data);
         break;
       case 'request_room_state':
         handleRequestRoomState(ws);
@@ -107,12 +110,10 @@ function handleCompleteLevel(ws: WebSocket, data: any): void {
     }
 
     // Mark level as complete
+    const context: ServerContext = { db, connectionManager, roomCode: clientInfo.roomCode, studentId };
+    const rewards = level.dynamicRewards ? level.dynamicRewards(context) : level.rewards;
     db.addProgress(studentId, levelId);
-
-    // Add rewards to inventory
-    level.rewards.forEach(reward => {
-      db.addInventoryItem(studentId, reward);
-    });
+    rewards.forEach(reward => db.addInventoryItem(studentId, reward));
 
     // Get updated student data
     const updatedStudent = db.getStudentWithProgress(studentId);
@@ -120,12 +121,7 @@ function handleCompleteLevel(ws: WebSocket, data: any): void {
     // Broadcast to all clients in the room
     connectionManager.broadcastToRoom(clientInfo.roomCode, {
       type: 'level_completed',
-      data: {
-        studentId,
-        levelId,
-        student: updatedStudent,
-        rewards: level.rewards
-      }
+      data: { studentId, levelId, student: updatedStudent, rewards }
     });
 
     console.log(`Level ${levelId} completed for student ${studentId}`);
@@ -171,13 +167,15 @@ function completeLevelForStudent(
     return false;
   }
 
+  const context: ServerContext = { db, connectionManager, roomCode, studentId };
+  const rewards = level.dynamicRewards ? level.dynamicRewards(context) : level.rewards;
   db.addProgress(studentId, levelId);
-  level.rewards.forEach((reward) => db.addInventoryItem(studentId, reward));
+  rewards.forEach((reward) => db.addInventoryItem(studentId, reward));
 
   const updatedStudent = db.getStudentWithProgress(studentId);
   connectionManager.broadcastToRoom(roomCode, {
     type: 'level_completed',
-    data: { studentId, levelId, student: updatedStudent, rewards: level.rewards },
+    data: { studentId, levelId, student: updatedStudent, rewards },
   });
 
   console.log(`Level ${levelId} auto-completed for student ${studentId}`);
@@ -445,13 +443,114 @@ function sendError(ws: WebSocket, message: string): void {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Communal level completion (teacher completes for all students at once)
+// ---------------------------------------------------------------------------
+
+function handleCompleteCommunalLevel(ws: WebSocket, data: any): void {
+  const clientInfo = connectionManager.getClientInfo(ws);
+  if (!clientInfo) {
+    sendError(ws, 'Client not registered');
+    return;
+  }
+  if (!clientInfo.isTeacher) {
+    sendError(ws, 'Only teachers can complete communal levels');
+    return;
+  }
+
+  const levelId: number = typeof data?.levelId === 'number' ? data.levelId : parseInt(data?.levelId);
+  if (!levelId || isNaN(levelId)) {
+    sendError(ws, 'Missing or invalid levelId');
+    return;
+  }
+
+  const level = levelConfig.getLevelById(levelId);
+  if (!level) {
+    sendError(ws, 'Invalid level');
+    return;
+  }
+  if (!level.communal) {
+    sendError(ws, 'Level is not a communal level');
+    return;
+  }
+
+  const db = getDatabase();
+  const room = db.getRoomByCode(clientInfo.roomCode);
+  if (!room) {
+    sendError(ws, 'Room not found');
+    return;
+  }
+
+  // Complete for every student currently at this level
+  const students = db.getStudentsByRoom(room.id);
+  for (const student of students) {
+    const currentLevel = db.getCurrentLevel(student.id);
+    if (currentLevel !== levelId) continue;
+    if (db.hasCompletedLevel(student.id, levelId)) continue;
+
+    const context: ServerContext = {
+      db,
+      connectionManager,
+      roomCode: clientInfo.roomCode,
+      studentId: student.id,
+    };
+    const rewards = level.dynamicRewards ? level.dynamicRewards(context) : level.rewards;
+    db.addProgress(student.id, levelId);
+    rewards.forEach((r) => db.addInventoryItem(student.id, r));
+
+    const updatedStudent = db.getStudentWithProgress(student.id);
+    connectionManager.broadcastToRoom(clientInfo.roomCode, {
+      type: 'level_completed',
+      data: { studentId: student.id, levelId, student: updatedStudent, rewards },
+    });
+    console.log(`Communal level ${levelId} completed for student ${student.id}`);
+  }
+
+  // Record room-wide completion when roomWide flag is set
+  if (level.roomWide) {
+    db.markRoomLevelComplete(room.id, levelId);
+    console.log(`Room-wide completion recorded for level ${levelId} in room ${clientInfo.roomCode}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Auto-skip room-wide communal levels already completed before student arrived
+// ---------------------------------------------------------------------------
+
+function autoSkipCommunalLevels(ws: WebSocket, roomCode: string, studentId: number): void {
+  const db = getDatabase();
+  const room = db.getRoomByCode(roomCode);
+  if (!room) return;
+
+  let advanced = false;
+  while (true) {
+    const currentLevelId = db.getCurrentLevel(studentId);
+    const currentLevel = levelConfig.getLevelById(currentLevelId);
+    if (!currentLevel?.roomWide) break;
+    if (!db.hasRoomCompletedLevel(room.id, currentLevelId)) break;
+    if (db.hasCompletedLevel(studentId, currentLevelId)) break;
+
+    const context: ServerContext = { db, connectionManager, roomCode, studentId };
+    const rewards = currentLevel.dynamicRewards ? currentLevel.dynamicRewards(context) : currentLevel.rewards;
+    db.addProgress(studentId, currentLevelId);
+    rewards.forEach((r) => db.addInventoryItem(studentId, r));
+    console.log(`Auto-skipped communal level ${currentLevelId} for student ${studentId}`);
+    advanced = true;
+  }
+
+  if (advanced) {
+    // Refresh this student's view with their updated progress
+    handleRequestRoomState(ws);
+  }
+}
+
 export function handleConnection(ws: WebSocket, roomCode: string, isTeacher: boolean, studentId?: number): void {
   connectionManager.addClient(ws, roomCode, isTeacher, studentId);
 
   // Send initial room state
   handleRequestRoomState(ws);
 
-  // Notify others in the room
+  // Notify others in the room and handle per-student setup
   if (!isTeacher && studentId) {
     const db = getDatabase();
     const student = db.getStudentWithProgress(studentId);
@@ -460,6 +559,9 @@ export function handleConnection(ws: WebSocket, roomCode: string, isTeacher: boo
       type: 'student_joined',
       data: { student }
     }, ws);
+
+    // Auto-advance past any communal levels the room already finished
+    autoSkipCommunalLevels(ws, roomCode, studentId);
   }
 
   // Set up message handler

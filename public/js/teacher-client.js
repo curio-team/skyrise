@@ -165,6 +165,7 @@ function handleRoomState(data) {
 
   updateStudentList();
   skylineRenderer.setStudents(students, totalLevels);
+  updateCommunalPanel();
 }
 
 function handleStudentJoined(data) {
@@ -177,6 +178,7 @@ function handleStudentJoined(data) {
 
   updateStudentList();
   skylineRenderer.setStudents(students, totalLevels);
+  updateCommunalPanel();
 }
 
 function handleLevelCompleted(data) {
@@ -187,6 +189,7 @@ function handleLevelCompleted(data) {
 
   updateStudentList();
   skylineRenderer.setStudents(students, totalLevels);
+  updateCommunalPanel();
 
   if (selectedStudent && selectedStudent.id === data.studentId) {
     selectedStudent = data.student;
@@ -294,6 +297,47 @@ function updateBulkControls() {
     cb.checked = false;
     cb.indeterminate = true;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Communal level panel
+// ---------------------------------------------------------------------------
+
+function updateCommunalPanel() {
+  const panel = document.getElementById('communal-level-panel');
+  const infoEl = document.getElementById('communal-level-info');
+  if (!panel || !infoEl) return;
+
+  // Find the lowest communal level that still has students waiting on it
+  const communalLevels = levels.filter(l => l.communal);
+  let activeCommunal = null;
+  let waitingCount = 0;
+
+  for (const level of communalLevels) {
+    const count = students.filter(s => s.current_level === level.id).length;
+    if (count > 0) {
+      activeCommunal = level;
+      waitingCount = count;
+      break;
+    }
+  }
+
+  if (!activeCommunal) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  infoEl.textContent =
+    `Level ${activeCommunal.id}: "${activeCommunal.title}" — ${waitingCount} student${waitingCount !== 1 ? 's' : ''} waiting.`;
+  document.getElementById('complete-communal-btn').dataset.levelId = activeCommunal.id;
+}
+
+function completeCommunalLevel() {
+  const btn = document.getElementById('complete-communal-btn');
+  const levelId = btn && parseInt(btn.dataset.levelId);
+  if (!levelId) return;
+  sendMessage({ type: 'complete_communal_level', data: { levelId } });
 }
 
 function bulkCompleteLevel() {

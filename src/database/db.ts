@@ -204,6 +204,23 @@ export class DatabaseService {
     stmt.run(studentId);
   }
 
+  // Room-level (communal) progress operations
+  markRoomLevelComplete(roomId: number, levelId: number): void {
+    const now = Date.now();
+    const stmt = this.db.prepare(
+      'INSERT OR IGNORE INTO room_progress (room_id, level_id, completed_at) VALUES (?, ?, ?)'
+    );
+    stmt.run(roomId, levelId, now);
+  }
+
+  hasRoomCompletedLevel(roomId: number, levelId: number): boolean {
+    const stmt = this.db.prepare(
+      'SELECT COUNT(*) as count FROM room_progress WHERE room_id = ? AND level_id = ?'
+    );
+    const result = stmt.get(roomId, levelId) as { count: number };
+    return result.count > 0;
+  }
+
   // Combined operations
   getStudentWithProgress(studentId: number): StudentWithProgress | undefined {
     const student = this.getStudentById(studentId);

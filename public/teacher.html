@@ -87,6 +87,16 @@
 
         <div class="controls-panel">
           <h3>Controls</h3>
+
+          <!-- Communal level action (shown when students are waiting on a communal level) -->
+          <div id="communal-level-panel" style="display:none; margin-bottom:16px; padding:12px; border:2px solid var(--accent,#4ECDC4); border-radius:8px; background:rgba(78,205,196,0.05);">
+            <div style="font-weight:600; margin-bottom:6px; color:var(--text-primary);">🧩 Communal Level</div>
+            <div id="communal-level-info" style="font-size:0.88em; color:var(--text-muted); margin-bottom:10px;"></div>
+            <button class="btn" id="complete-communal-btn" onclick="completeCommunalLevel()">
+              Complete for All Students
+            </button>
+          </div>
+
           <div id="no-selection"
                style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.9em;">
             Select a student

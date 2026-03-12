@@ -123,6 +123,14 @@ const levels: LevelDefinition[] = [
     description:
       'Jullie staan voor de ultieme teamtest! Élke speler in de kamer moet tegelijkertijd de knop ingedrukt houden. Coördineer met je klasgenoten — pas als iedereen klaarstaat, worden jullie allemaal tegelijk beloond!',
     rewards: ['sync_badge', 'team_gem'],
+    dynamicRewards(context: ServerContext): string[] {
+      const room = context.db.getRoomByCode(context.roomCode);
+      if (!room) return ['sync_badge', 'team_gem', 'puzzle_piece_1'];
+      const students = context.db.getStudentsByRoom(room.id);
+      const idx = students.findIndex(s => s.id === context.studentId);
+      const piece = ((idx >= 0 ? idx : 0) % 9) + 1;
+      return ['sync_badge', 'team_gem', `puzzle_piece_${piece}`];
+    },
     handlerConfig: {
       buttonLabel: 'Houd vast!',
       holdDurationMs: 2000,
@@ -301,6 +309,29 @@ const levels: LevelDefinition[] = [
     description:
       'Gefeliciteerd! Je hebt alle uitdagingen van DevCity doorstaan, nieuwe vrienden gemaakt, codes gekraakt en knoppen gevangen. DevCity kroont jou tot Meester-Bouwer! Laat de leraar weten dat je klaar bent en ontvang je legendarische beloningen.',
     rewards: ['master_badge', 'golden_trophy', 'architect_crown', 'completion_certificate'],
+  },
+  {
+    id: 13,
+    type: 'communal',
+    communal: true,
+    roomWide: true,
+    title: 'De Grote Puzzel!',
+    description:
+      'De ultieme teamuitdaging! Zoek alle andere spelers op en combineer jullie puzzelstukken. '
+      + 'Teken samen het volledige DevCity-plaatje na op het whiteboard. '
+      + 'Zodra iedereen zijn stuk heeft bijgedragen en het plaatje compleet is, geeft de leraar het sein dat jullie klaar zijn!',
+    rewards: ['master_badge', 'golden_trophy'],
+    renderHtml(_cfg: Record<string, unknown>): string {
+      return `
+        <div class="level-interaction-panel">
+          <p class="open-input-prompt">🧩 Zoek alle medespelers op en teken samen het volledige DevCity-plaatje op het whiteboard!</p>
+          <p style="margin-top:12px;color:var(--text-muted);font-size:0.9em;">
+            Kijk in je inventaris voor jouw puzzelstuk. Combineer alle stukken met je klasgenoten.
+            De leraar markeert dit level als voltooid zodra het plaatje compleet is.
+          </p>
+        </div>
+      `;
+    },
   },
 ];
 

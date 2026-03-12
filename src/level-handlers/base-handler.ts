@@ -20,6 +20,16 @@ export interface ServerContext {
  * The optional `validate` function lets a level override the handler's built-in
  * validation with arbitrary server-side logic. When present it is called instead
  * of the handler's own validate().
+ *
+ * The optional `dynamicRewards` function computes per-student rewards at
+ * completion time (e.g. assigning unique puzzle pieces). When present it
+ * overrides the static `rewards` array for reward assignment only.
+ *
+ * Set `communal: true` so the teacher can complete the level for all students
+ * at once via the `complete_communal_level` message.
+ *
+ * Set `roomWide: true` (requires `communal: true`) to record a room-level
+ * completion so that students who reach this level later are auto-advanced.
  */
 export interface LevelDefinition {
   id: number;
@@ -27,8 +37,14 @@ export interface LevelDefinition {
   title: string;
   description: string;
   rewards: string[];
+  /** If true, teacher can complete this level for all currently-on-it students at once. */
+  communal?: boolean;
+  /** If true (and communal), room-wide completion is persisted so late-joining students auto-skip. */
+  roomWide?: boolean;
   handlerConfig?: Record<string, unknown>;
   validate?(submission: unknown, context: ServerContext): LevelHandlerResult;
+  /** Overrides the static `rewards` array when assigning rewards to a specific student. */
+  dynamicRewards?(context: ServerContext): string[];
   /** Returns HTML string rendered into the student UI for this level.
    *  Receives the already-sanitised client config (no secret fields). */
   renderHtml?(clientConfig: Record<string, unknown>): string;
