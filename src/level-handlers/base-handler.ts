@@ -36,7 +36,7 @@ export interface LevelDefinition {
   type: string;
   title: string;
   description: string;
-  rewards: string[];
+  rewards?: string[];
   /** If true, teacher can complete this level for all currently-on-it students at once. */
   communal?: boolean;
   /** If true (and communal), room-wide completion is persisted so late-joining students auto-skip. */

@@ -122,7 +122,6 @@ const levels: LevelDefinition[] = [
     title: 'De grote synchronisatie!',
     description:
       'Jullie staan voor de ultieme teamtest! Élke speler in de kamer moet tegelijkertijd de knop ingedrukt houden. Coördineer met je klasgenoten — pas als iedereen klaarstaat, worden jullie allemaal tegelijk beloond!',
-    rewards: ['sync_badge', 'team_gem'],
     dynamicRewards(context: ServerContext): string[] {
       const room = context.db.getRoomByCode(context.roomCode);
       if (!room) return ['sync_badge', 'team_gem', 'puzzle_piece_1'];

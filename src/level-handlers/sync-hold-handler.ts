@@ -108,12 +108,16 @@ export class SyncHoldHandler implements LevelHandler<SyncHoldConfig, unknown> {
 
     for (const student of studentsOnLevel) {
       if (context.db.hasCompletedLevel(student.id, levelId)) continue;
+      const studentContext: ServerContext = { ...context, studentId: student.id };
+      const rewards = level.dynamicRewards
+        ? level.dynamicRewards(studentContext)
+        : level.rewards;
       context.db.addProgress(student.id, levelId);
-      level.rewards.forEach((reward) => context.db.addInventoryItem(student.id, reward));
+      rewards!.forEach((reward) => context.db.addInventoryItem(student.id, reward));
       const updated = context.db.getStudentWithProgress(student.id);
       context.connectionManager.broadcastToRoom(context.roomCode, {
         type: 'level_completed',
-        data: { studentId: student.id, levelId, student: updated, rewards: level.rewards },
+        data: { studentId: student.id, levelId, student: updated, rewards },
       });
     }
 
